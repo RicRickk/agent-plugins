@@ -13,12 +13,16 @@ Werkzeug nimmt optional `accountId`; weggelassen heißt das Konto des Zugangs.
 | `upsert-subscribed-contact` | DO | Einen Kontakt von Hand anlegen, sofort angemeldet — kein Opt-in, keine Bestätigungsmail. |
 | `subscribe-contact-via-opt-in-process` · `unsubscribe-contact` | DO | Einen Kanal über einen Prozess an- / abmelden. Brauchen `approval`. |
 | `update-contact-values` | DO | Feldwerte. Nicht: Adressen, Opt-in, Abos. |
+| `update-contact-email` | DOI | Eine E-Mail-Adresse ersetzen; der Status bleibt, nichts wird bestätigt. |
+| `delete-contact` | D | Den ganzen Kontakt, beide Kanäle, samt Verlauf. |
+| `get-contact-history` · `add-contact-history-note` | R / D | Den Verlauf lesen; eine Notiz anfügen, die sich nie entfernen lässt. |
+| `search-duplicate-contacts` | R | Erkannte Dubletten-Paare; zusammenführen nur in der App. |
 | `tag-contact` · `untag-contact` | O | → Skill `tags`. |
 | `get-account-settings` | R I | Die Einstellungen des Kontos, nur die, die es ändern darf. Zugangsdaten nur als eingerichtet oder nicht. |
 | `update-account-settings` | I | Nur die genannten Einstellungen schreiben. Ein falscher Wert weist den ganzen Aufruf ab. |
 
 ### `search-contacts` · `get-contact`
-**Wofür:** Kontakte finden (E-Mail-Fragment, Mobilnummer, Status, Kanal, **ein** manueller Tag) und
+**Wofür:** Kontakte finden (E-Mail-Fragment, Mobilnummer, Status, Kanal, **ein** Tag — manuell oder Smart-Tag) und
 lesen (Adresse, Status, Feldwerte, manuelle Tags, Bearbeitungslink). **Nicht:** vollständige Kanal-
 oder Referenzdaten — `get-contact` liest **eine** `referenceId` (Default `0`) und eine E-Mail.
 **Stolperer:** Seiten à höchstens 100 ohne Gesamtzahl; ein Konto mit 80 000 Kontakten sind 800
@@ -46,6 +50,33 @@ Abmelden entfernt keine Tags.
 Kontos, `referenceId` Default 0). **Nicht:** Adressen, Opt-in, Abos, Listen. **Stolperer:** Das Feld
 muss existieren (Skill `custom-fields`) — nichts wird nebenbei angelegt. Ein leerer Wert löscht das
 Feld. Überschreibt ohne Undo.
+
+### `update-contact-email`
+**Wofür:** eine E-Mail-Adresse eines Kontakts ersetzen. Ohne `currentEmail` die Hauptadresse. Ein aus
+Dubletten zusammengeführter Kontakt kann mehrere haben; `get-contact` zeigt nur die Hauptadresse, aber
+jede Antwort dieses Werkzeugs listet alle in `emailAddresses`. Für eine andere Adresse diese als
+`currentEmail` mitgeben; eine Adresse, die der Kontakt nicht hat, wird mit den vorhandenen abgewiesen.
+**Nicht:** die Mobilnummer. **Stolperer:** Abgewiesen werden eine abgemeldete Adresse, eine Adresse,
+die ein anderer Kontakt hat, eine ungültige oder gesperrte Adresse und jeder Aufruf, wenn das
+Tagesimportlimit erreicht ist. Die alte Adresse ist danach weg; die Änderung steht im Verlauf. Kann
+Automationen starten.
+
+### `delete-contact`
+**Wofür:** einen Kontakt endgültig löschen — beide Kanäle, Abos, Tags, Feldwerte, Verlauf; er
+verlässt jede Kampagne und Automation. **Nicht:** abmelden und behalten — das ist
+`unsubscribe-contact`. **Stolperer:** Kein Undo und kein `approval`-Argument: die Zustimmung holst du
+im Gespräch, nachdem du den Kontakt beim Namen zurückgenannt hast.
+
+### `get-contact-history` · `add-contact-history-note`
+**Wofür:** den Verlauf eines Kontakts lesen, neueste zuerst, mit Cursor, filterbar nach `category`;
+eine interne Notiz anfügen. **Stolperer:** Der Verlauf trägt mehr persönliche Daten als die
+Detailansicht (Rückmeldetexte, eingehende SMS, Zahlungen) — gib nur weiter, was die Aufgabe braucht.
+Eine Notiz ist dauerhaft: nie bearbeitbar, nie entfernbar.
+
+### `search-duplicate-contacts`
+**Wofür:** die Dubletten-Paare, die KlickTipp erkannt hat, mit Grund und Wahrscheinlichkeit; Default
+sind offene Paare. **Nicht:** zusammenführen oder ablehnen — das geht in der App, und Zusammenführen
+löscht die Dublette ohne Undo. **Stolperer:** Ein Paar kann von beiden Seiten erscheinen.
 
 ### `get-account-settings`
 **Wofür:** die Einstellungsseite des Kontos lesen — Funktionsschalter, Vorschau-Tag, Sperrliste.

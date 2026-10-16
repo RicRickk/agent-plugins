@@ -11,13 +11,17 @@ tut und woran man sich stößt, steht in [tools.md](tools.md).
 
 ## Inhalt
 
-`search-opt-in-processes` · `get-opt-in-process` · `create-opt-in-process` · `update-opt-in-process` · `delete-opt-in-process` · `get-opt-in-confirmation-email` · `update-opt-in-confirmation-email` · `get-opt-in-confirmation-email-content` · `update-opt-in-confirmation-email-content` · `preview-opt-in-confirmation-email` · `send-opt-in-confirmation-email-test` · `get-opt-in-process-redirect-url`
+`search-opt-in-processes` · `get-opt-in-process` · `create-opt-in-process` · `update-opt-in-process`
+· `delete-opt-in-process` · `get-opt-in-confirmation-email` · `update-opt-in-confirmation-email` ·
+`get-opt-in-confirmation-email-content` · `update-opt-in-confirmation-email-content` ·
+`preview-opt-in-confirmation-email` · `send-opt-in-confirmation-email-test` ·
+`get-opt-in-process-redirect-url`
 
 ## `search-opt-in-processes` · RI
 
 **Search opt-in processes**
 
-Searches the active KlickTipp opt-in processes (also called subscription processes or subscriber lists) of an account, sorted by name, with ID, name, opt-in mode and the flags that tell them apart. Deleted processes are left out. Lists the account the access token belongs to, or one of its subaccounts when an account ID is given. The full configuration of a single entry is get-opt-in-process.
+Searches active opt-in processes (subscriber lists) by name, sorted by name, with ID, opt-in mode and distinguishing flags. Deleted processes are excluded; get-opt-in-process reads full settings.
 
 Parameter:
 
@@ -28,7 +32,7 @@ Parameter:
 
 **Get opt-in process**
 
-Returns the configuration of a single KlickTipp opt-in process (also called subscription process or subscriber list), looked up by its numeric ID: name, opt-in mode, confirmation email ID, redirect URLs with their query and UTM parameters, pending subscriber deletion, labels and notes. Reads from the account the access token belongs to, or from one of its subaccounts when an account ID is given.
+Reads an opt-in process (subscriber list) by ID: mode, confirmation email ID, redirect URLs and parameters, pending-subscriber deletion, labels and notes.
 
 Parameter:
 
@@ -39,7 +43,7 @@ Parameter:
 
 **Create opt-in process**
 
-Creates a KlickTipp opt-in process (also called subscription process or subscriber list) and the confirmation email that belongs to it, which the platform always creates with it. Takes the same settings as update-opt-in-process except the change-email role. copyFromOptInProcessId copies an existing process including the text of its confirmation email, and the arguments given here still win over the copy. The new process is empty and sends nothing until a form, an automation or an API call subscribes someone to it. Single opt-in subscribes contacts without confirming, which is not permitted everywhere - ask before setting it. The answer carries the new ID and confirmationEmailId; the confirmation email tools write that email.
+Creates an opt-in process (subscriber list) and its confirmation email, without subscribing anyone or sending. Defaults to double opt-in; single opt-in skips confirmation and requires the user’s approval. copyFromOptInProcessId also copies the confirmation email text; supplied settings override the copy. A page parameter is a name the platform fills with contact data; a UTM parameter is a value under a fixed name; both require the redirect URL in the same call. The change-email role is set separately with update-opt-in-process. Returns both process and email IDs.
 
 Parameter:
 
@@ -50,11 +54,31 @@ Parameter:
 - `confirmedRedirectUrl` — null | string (maxLength 2000): URL a contact reaches after confirming; omit for the KlickTipp page
 - `resendConfirmationEmail` — null | boolean: Whether an already pending contact receives the confirmation email again on a repeated subscription
 - `deletePendingSubscribersAfterDays` — null | integer (einer von `0`, `1`, `3`, `7`, `14`): Days after which unconfirmed contacts are deleted, one of 0, 1, 3, 7, 14; 0 keeps them
-- `metaLabels` — array | null (maxItems 50): Labels of the new process
+- `metaLabels` — array<string> (maxItems 50): Labels of the new process
 - `pendingPageParameters` — object: Query parameters appended to pendingRedirectUrl, by the name each is appended under; needs pendingRedirectUrl in the same call
+  - `subscriberParameterName` — string (maxLength 100)
+  - `emailParameterName` — string (maxLength 100)
+  - `listParameterName` — string (maxLength 100)
+  - `subscriberKeyParameterName` — string (maxLength 100)
 - `confirmedPageParameters` — object: Query parameters appended to confirmedRedirectUrl, by the name each is appended under; needs confirmedRedirectUrl in the same call
+  - `subscriberParameterName` — string (maxLength 100)
+  - `emailParameterName` — string (maxLength 100)
+  - `listParameterName` — string (maxLength 100)
+  - `subscriberKeyParameterName` — string (maxLength 100)
+  - `referralLinkParameterName` — string (maxLength 100): Name the referral link is appended under; only together with referralLinkId
+  - `referralLinkId` — integer (minimum 0): ID of the account's own referral-link tool, as get-opt-in-process reports it; 0 means no referral link, and then referralLinkParameterName has to be empty too
 - `pendingUtmParameters` — object: Campaign tracking values appended to pendingRedirectUrl, by query name; the value, not the name; needs pendingRedirectUrl in the same call
+  - `utm_source` — string (maxLength 200)
+  - `utm_medium` — string (maxLength 200)
+  - `utm_campaign` — string (maxLength 200)
+  - `utm_term` — string (maxLength 200)
+  - `utm_content` — string (maxLength 200)
 - `confirmedUtmParameters` — object: The same for confirmedRedirectUrl; needs confirmedRedirectUrl in the same call
+  - `utm_source` — string (maxLength 200)
+  - `utm_medium` — string (maxLength 200)
+  - `utm_campaign` — string (maxLength 200)
+  - `utm_term` — string (maxLength 200)
+  - `utm_content` — string (maxLength 200)
 - `copyFromOptInProcessId` — null | integer (minimum 1): Existing process to copy settings and confirmation email from; the arguments above still win
 - `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in
 
@@ -62,7 +86,7 @@ Parameter:
 
 **Update opt-in process**
 
-Changes the settings of one KlickTipp opt-in process (also called subscription process or subscriber list): name, opt-in mode, redirect URLs with their query and UTM parameters, confirmation resend, change-email role, deletion of unconfirmed contacts, labels and notes. Only the arguments that are given are written, the rest keeps its current value. Settings take effect for contacts subscribing from now on; contacts already in the process are not touched and nothing is sent. Single opt-in subscribes later contacts without confirming, which is not permitted everywhere - ask before setting it. The confirmation email is written with the opt-in confirmation email tools. A page parameter is a NAME the platform fills with contact data; a UTM parameter is a VALUE under a fixed name. Both reach a page only together with that page's URL in the same call. get-opt-in-process reads them.
+Updates an opt-in process’s name, mode, redirects, resend policy, change-email role, pending-contact deletion, labels and notes. Omitted settings stay; changes affect future signups without sending now. Single opt-in skips confirmation and requires the user’s approval. A page parameter is a name the platform fills with contact data; a UTM parameter is a value under a fixed name. Both require the corresponding redirect URL in the same call; taking the change-email role removes it from the previous process. Confirmation email content is updated separately.
 
 Parameter:
 
@@ -75,18 +99,38 @@ Parameter:
 - `resendConfirmationEmail` — null | boolean: Whether an already pending contact receives the confirmation email again on a repeated subscription
 - `useForChangeEmail` — null | boolean: Whether this process handles email address changes; true takes that role away from the process that holds it
 - `deletePendingSubscribersAfterDays` — null | integer (einer von `0`, `1`, `3`, `7`, `14`): Days after which unconfirmed contacts are deleted, one of 0, 1, 3, 7, 14; 0 keeps them
-- `metaLabels` — array | null (maxItems 50): Complete list of labels; replaces the existing labels, empty array removes them all
+- `metaLabels` — array<string> (maxItems 50): Complete list of labels; replaces the existing labels, empty array removes them all
 - `pendingPageParameters` — object: Query parameters appended to pendingRedirectUrl, by the name each is appended under; needs pendingRedirectUrl in the same call
+  - `subscriberParameterName` — string (maxLength 100)
+  - `emailParameterName` — string (maxLength 100)
+  - `listParameterName` — string (maxLength 100)
+  - `subscriberKeyParameterName` — string (maxLength 100)
 - `confirmedPageParameters` — object: Query parameters appended to confirmedRedirectUrl, by the name each is appended under; needs confirmedRedirectUrl in the same call
+  - `subscriberParameterName` — string (maxLength 100)
+  - `emailParameterName` — string (maxLength 100)
+  - `listParameterName` — string (maxLength 100)
+  - `subscriberKeyParameterName` — string (maxLength 100)
+  - `referralLinkParameterName` — string (maxLength 100): Name the referral link is appended under; only together with referralLinkId
+  - `referralLinkId` — integer (minimum 0): ID of the account's own referral-link tool, as get-opt-in-process reports it; 0 means no referral link, and then referralLinkParameterName has to be empty too
 - `pendingUtmParameters` — object: Campaign tracking values appended to pendingRedirectUrl, by query name; the value, not the name; needs pendingRedirectUrl in the same call
+  - `utm_source` — string (maxLength 200)
+  - `utm_medium` — string (maxLength 200)
+  - `utm_campaign` — string (maxLength 200)
+  - `utm_term` — string (maxLength 200)
+  - `utm_content` — string (maxLength 200)
 - `confirmedUtmParameters` — object: The same for confirmedRedirectUrl; needs confirmedRedirectUrl in the same call
+  - `utm_source` — string (maxLength 200)
+  - `utm_medium` — string (maxLength 200)
+  - `utm_campaign` — string (maxLength 200)
+  - `utm_term` — string (maxLength 200)
+  - `utm_content` — string (maxLength 200)
 - `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in
 
 ## `delete-opt-in-process` · D
 
 **Delete opt-in process**
 
-Deletes one KlickTipp opt-in process (also called subscription process or subscriber list) together with its confirmation email. The contacts that subscribed through it keep their subscription and are not deleted. Refused for the default process of the account, and for a process that forms, campaigns or other entities still refer to -- the refusal names what refers to it, so those can be pointed elsewhere first. This cannot be undone, so only call it for a process the user has explicitly asked to delete, named by the ID that get-opt-in-process reports.
+Deletes an opt-in process and its confirmation email permanently; existing contacts keep their subscriptions. Refuses the default process or one still referenced by forms, campaigns or other entities, naming dependencies. Requires the user to request deletion of this process ID.
 
 Parameter:
 
@@ -97,7 +141,7 @@ Parameter:
 
 **Get opt-in confirmation email**
 
-Reads who the confirmation email of a double opt-in process comes from: its subject, the sender name and address, reply-to, CC and BCC, and the sender domain. It also names what may be chosen: senderEmailOptions are the addresses the account can send from, senderDomainOptions the domains it may pick between, empty when it has no choice. An empty stored sender or reply-to is reported as the account's own address; senderIdentity reports its current status and concrete choices. The body is not part of this answer -- it is get-opt-in-confirmation-email-content. A confirmation email is not a drag-and-drop document, so the block tools do not accept it; the answer carries bodyIsEditable false for that reason and an editUrl into the KlickTipp editor. Single opt-in processes still have this email stored; it is simply not sent. Change it with update-opt-in-confirmation-email.
+Reads an opt-in confirmation email’s subject and sender settings, with sendable sender addresses, confirmed CC/BCC options, domains and identity status. An empty stored sender or reply-to follows the account address. Single opt-in processes store this email but do not send it. The body is read by get-opt-in-confirmation-email-content; drag-and-drop block tools do not support it. Change settings with update-opt-in-confirmation-email.
 
 Parameter:
 
@@ -108,14 +152,14 @@ Parameter:
 
 **Update opt-in confirmation email**
 
-Changes the settings of the confirmation email a double opt-in process sends: subject, sender name and address, reply-to, CC, BCC and sender domain. Only the arguments that are given are written, except that senderDomain may be normalized when account domain state changed. A sender address has to be configured and covered by a live verified domain. For an ordinary sender address, senderDomain is checked and derived when omitted; a dispatch profile keeps deciding both values itself. The body is not written here: that is update-opt-in-confirmation-email-content, and the block tools do not accept this email at all. This email is the legal record of a contact's consent in many countries: change its sender or subject only when the user asked for it, and say what was changed.
+Updates an opt-in confirmation email’s subject, sender, reply-to, CC, BCC or domain. Omitted values stay, though the domain may be normalized; ordinary senders need a configured address with a verified domain, derived when omitted. A dispatch profile decides its own sender and domain. The body is updated separately. This email records consent: change sender or subject only at the user’s request.
 
 Parameter:
 
 - `optInProcessId`* — integer (minimum 1): ID of the opt-in process whose confirmation email is changed
 - `subject` — null | string (minLength 1; maxLength 250): Subject line of the confirmation email
 - `senderName` — null | string (minLength 1; maxLength 250): Name the email comes from
-- `senderEmail` — null | string (maxLength 250): Configured address the email comes from, or empty for the account's own address
+- `senderEmail` — null | string (maxLength 250): Configured sender address; empty uses the account's address; "dispatchProfile" uses the sender profile for both address and domain (omit senderDomain)
 - `replyToEmail` — null | string (maxLength 250): Address a reply goes to; empty string returns it to the account's own address
 - `ccEmail` — null | string (maxLength 250): Address that receives a copy; empty string removes it
 - `bccEmail` — null | string (maxLength 250): Address that receives a blind copy; empty string removes it
@@ -126,7 +170,7 @@ Parameter:
 
 **Get opt-in confirmation email content**
 
-Reads the body of the confirmation email a double opt-in process sends: its subject, its HTML body and its plain-text body, and which of the two it actually sends. Both bodies are always returned, because which one a recipient sees is their mail client's choice. This email is not a drag-and-drop document and the block tools do not work on it -- its text is rich text, written with update-opt-in-confirmation-email-content or by hand in the KlickTipp editor the answer links to. Sender, reply-to and the rest are get-opt-in-confirmation-email.
+Reads an opt-in confirmation email’s subject, HTML and plain-text bodies and content type. Both bodies are returned; the recipient’s mail client chooses which to show. This is rich text, not a drag-and-drop document. Sender settings are read by get-opt-in-confirmation-email.
 
 Parameter:
 
@@ -137,7 +181,7 @@ Parameter:
 
 **Update opt-in confirmation email content**
 
-Replaces the body of the confirmation email a double opt-in process sends. html and plain are each written whole, not patched, and a part that is not given keeps its text -- so writing only one leaves the email saying two different things to two recipients. Write both. The platform checks the result the way the editor does: errors, such as a missing unsubscribe link or an empty subject, stop the write and are returned in validationMessages with stored false; warnings do not. This email is the legal record of a contact's consent in many countries -- it must still say who is subscribing them to what. Change it only when the user asked for it, and say what changed.
+Replaces the supplied HTML or plain-text body of an opt-in confirmation email in full; omitted parts stay and may then disagree, so supply both for a consistent message. Validation errors refuse the write with stored false and validationMessages; warnings do not. This email records consent and must still identify who is subscribing to what. Change it only at the user’s request.
 
 Parameter:
 
@@ -151,7 +195,7 @@ Parameter:
 
 **Preview opt-in confirmation email**
 
-Displays the confirmation email of an opt-in process in an MCP App, so it can be looked at before a contact gets it. Shows the body as STORED: the signature, the confirmation link and the recipient's own data behind the placeholders are added per recipient when it is sent, so they are not in this picture and their absence is not a fault. A plain-text-only email is shown as its text. Changes nothing and creates no contact -- unlike the preview screen of the app, which makes a preview contact. The result carries contentHtml for hosts without MCP Apps support; to receive a real one, use send-opt-in-confirmation-email-test.
+Previews an opt-in confirmation email’s stored body without sending or creating a contact. Recipient data, signature and confirmation link are added only at send time; plain-only emails show their text. Returns contentHtml when MCP Apps are unavailable. To receive a real one, use send-opt-in-confirmation-email-test.
 
 Parameter:
 
@@ -162,7 +206,7 @@ Parameter:
 
 **Send opt-in confirmation email test**
 
-Sends the confirmation email of an opt-in process as a test to a single address, so its text can be read before a contact gets it -- the same send the test dialog of KlickTipp performs. Any address may receive one, and an address that is not a contact of the account yet becomes one and is tagged as a test recipient, which can start automations; name the address and say what it will become before calling this. The confirmation link in a test does not confirm anybody. Nothing about the opt-in process changes, and no contact of it is a recipient. Read the body first with get-opt-in-confirmation-email-content.
+Sends an opt-in confirmation email test to one named address. A new address becomes a tagged test contact, potentially starting automations; tell the user before sending. The test confirmation link confirms nobody, and the process’s subscribers are not recipients.
 
 Parameter:
 
@@ -174,7 +218,7 @@ Parameter:
 
 **Get subscription redirect URL**
 
-Returns the URL one contact is redirected to by an opt-in process. The contact's email address is required and is what the answer is about: the URL carries that contact's own id, address and subscriber key, so an address nobody named produces a URL about the wrong person. Which page comes back follows the contact's state, reported as redirectPage: while the double opt-in confirmation is still open it is the pending page, and only a confirmed contact gets the thank-you page -- a pending answer means that contact has not confirmed yet, not that the process is misconfigured. The URL also carries the page's campaign tracking. Processes without a custom page fall back to the KlickTipp-hosted pending or thank-you page.
+Resolves the opt-in redirect URL for a specified contact email. The URL includes that contact’s ID, address and subscriber key: use only the intended person’s address. It points to the pending or confirmed page according to status; without a custom page it uses KlickTipp’s hosted page.
 
 Parameter:
 

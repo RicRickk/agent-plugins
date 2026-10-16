@@ -11,27 +11,29 @@ tut und woran man sich stößt, steht in [tools.md](tools.md).
 
 ## Inhalt
 
-`search-custom-fields` · `get-custom-field` · `create-custom-field` · `update-custom-field` · `delete-custom-field`
+`search-custom-fields` · `get-custom-field` · `create-custom-field` · `update-custom-field` ·
+`delete-custom-field`
 
 ## `search-custom-fields` · RI
 
 **Search custom fields**
 
-Lists the custom field definitions of a KlickTipp account with ID, name, data type, the placeholder that renders the value of the receiving contact in newsletter content, and the group the account sorted the field into. Fields the account created itself come first, newest first, followed by the global fields every KlickTipp account has, such as first name or city; the global ones are marked with isGlobal and cannot be changed or deleted. Can be narrowed by a text the name has to contain, by data type, and to the fields the write tools may touch. This lists definitions -- what a contact has stored in a field is read through the contact tools.
+Searches custom-field definitions by name or data type, including IDs and email placeholders, the account's own fields newest first, then the global ones; paginated by cursor. Global fields are read-only; contact values are read with get-contact.
 
 Parameter:
 
 - `query` — null | string (maxLength 250): Text the name of a field has to contain; omit to list them all
-- `types` — array | null: Only fields of these data types, for example ["field-date", "field-datetime"]; omit for every type
+- `types` — null | array<string>: Only fields of these data types, for example ["field-date", "field-datetime"]; omit for every type
 - `onlyWritable` — null | boolean: Only the account's own fields, the ones the write tools may touch; omit to include the global fields
 - `limit` — null | integer (minimum 1; maximum 200): How many fields to return at most, 1 to 200, 50 by default
+- `cursor` — null | string (minLength 1; maxLength 500): nextCursor of the previous page, with the same filters; omit for the first page
 - `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in
 
 ## `get-custom-field` · RI
 
 **Get custom field**
 
-Returns one custom field definition of a KlickTipp account: its name and data type, the placeholder that renders the value of the receiving contact in newsletter content, the key the public API addresses it with, what the account wrote about what the field holds, its internal note, group and labels, the field its values are copied to, and whether a contact can hold more than one value in it. This returns the definition -- what a contact has stored in the field is read through the contact tools.
+Reads one custom-field definition: type, placeholder, API key, metadata, copy target and whether values are per subscription. Contact values are read with get-contact.
 
 Parameter:
 
@@ -42,7 +44,7 @@ Parameter:
 
 **Create custom field**
 
-Creates a custom field definition in KlickTipp and returns its ID and the placeholder that renders it in newsletter content. Creating a field stores no value and changes no contact. Fields are never created as a side effect elsewhere, so a field a contact should have a value in has to be created here first. The data type is picked once and for good: it cannot be changed afterwards, so pick the one that matches what will be stored -- a date field for a date, a number field for an amount. multiValue decides whether a contact holds one value PER SUBSCRIPTION (true, the default when omitted) or one value overall (false); it is worth deciding here, because an existing field can only go from true to false and never back. The name has to be unique within the account. The description is what tells a later reader what belongs in the field.
+Creates a custom-field definition and returns its ID and email placeholder. The type cannot change later. multiValue defaults to one value per subscription; changing to one value per contact later deletes extra values and cannot be reversed. Stores no contact values.
 
 Parameter:
 
@@ -52,11 +54,11 @@ Parameter:
 - `multiValue` — null | boolean: True: one value per subscription; false: one value overall; omit for true
 - `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in
 
-## `update-custom-field` · I
+## `update-custom-field` · DI
 
 **Update custom field**
 
-Changes the name, description, group, labels, cardinality, subscription-email key, note or copy target of a custom field. Only what is passed is written; an empty string clears a text setting. The data type cannot be changed and is refused: an existing field keeps the type its stored values were written in. multiValue false collapses the field to ONE value per contact and DELETES the extra values contacts hold per subscription -- ask the person first, it cannot be undone and true is then refused for good. requestName is the key a contact writes as "key = value" in the body of a subscription email to fill this field; it addresses the field, so two fields sharing one means the first wins. copyToFieldId must name a field of a compatible type or the change is refused. Only fields the account created itself can be changed; the global ones are refused.
+Updates an account-owned custom field’s metadata, copy target or cardinality. Type and global fields cannot be changed. Setting multiValue false permanently deletes extra per-subscription values; ask the user before making that change. copyToFieldId needs a field of compatible type; fields sharing a requestName resolve to the first. Omitted fields stay.
 
 Parameter:
 
@@ -64,18 +66,18 @@ Parameter:
 - `name` — null | string (maxLength 250): New name of the field, which has to stay unique within the account; omit to keep the current one
 - `description` — null | string (maxLength 2000): New description of what the field holds; omit to keep the current one
 - `category` — null | string (maxLength 250): Group in the app; empty string sorts into none; omit to keep
-- `metaLabels` — array | null (maxItems 50): New set of labels of the field, which replaces the current one; omit to keep the current labels
+- `metaLabels` — null | array<string> (maxItems 50): New set of labels of the field, which replaces the current one; omit to keep the current labels
 - `multiValue` — null | boolean: False collapses the field to one value per contact and DELETES the others; true is refused on a field that is already false; omit to keep
 - `requestName` — null | string (maxLength 250): Key this field is addressed by in a subscription email body; empty string removes it; omit to keep
-- `copyToFieldId` — null | string (maxLength 100; Muster `^[A-Za-z0-9_]*$`): ID of the field every value written here is also copied into; empty string stops the copying; omit to keep
 - `notes` — null | string (maxLength 1000): Internal note on the field, which nobody outside the account sees; empty string removes it; omit to keep
+- `copyToFieldId` — null | string (maxLength 100; Muster `^[A-Za-z0-9_]*$`): ID of the field every value written here is also copied into; empty string stops the copying; omit to keep
 - `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in
 
 ## `delete-custom-field` · DI
 
 **Delete custom field**
 
-Deletes a custom field definition in KlickTipp and with it every value the contacts of the account hold in that field. This destroys contact data and cannot be undone, so only call it for a field the user has explicitly asked to delete. Only fields the account created itself can be deleted; the global fields every KlickTipp account has are refused. A field that opt-in forms, automations or other entities still use is refused as well, and the refusal names them, so nothing that reads the field breaks silently. The placeholder of a deleted field renders an empty value wherever content still carries it.
+Permanently deletes an account-owned custom field and all contacts’ values in it. Global fields and fields still used by forms, automations or other entities are refused, naming them; remaining placeholders render empty. Only delete a field the user explicitly asked to delete.
 
 Parameter:
 

@@ -11,18 +11,19 @@ tut und woran man sich stößt, steht in [tools.md](tools.md).
 
 ## Inhalt
 
-`search-tags` · `get-tag` · `create-manual-tag` · `update-manual-tag` · `delete-manual-tag` · `tag-contact` · `untag-contact`
+`search-tags` · `get-tag` · `create-manual-tag` · `update-manual-tag` · `delete-manual-tag` ·
+`tag-contact` · `untag-contact`
 
 ## `search-tags` · RI
 
 **Search tags**
 
-Lists the tags of a KlickTipp account with ID, name, type, whether they can be written and whether a contact can carry them more than once. Tags are either manual -- created and assigned deliberately -- or put on contacts by KlickTipp itself when something happens, for example a newsletter being sent, opened or clicked; the type says which. Can be narrowed by a text the name has to contain, by type, to the writable ones, by whether a contact can carry a tag once per subscription or only once overall, and to tags with a system role such as the test contact marker. The description of a tag is not part of the list -- use get-tag for that.
+Searches account tags by name, type, writability, per-subscription cardinality or system role. Includes manual and event-generated tags with ID, name and type; get-tag reads their meaning.
 
 Parameter:
 
 - `query` — null | string (maxLength 250): Text the name of a tag has to contain; omit to list them all
-- `type` — null | string (maxLength 100): Only tags of this type, e.g. "tag" (manual), "campaign-sent", "email-opened"; omit for every type
+- `type` — null | string (einer von `apikey-subscribed`, `automation-finished`, `automation-started`, `businesscard-subscribed`, `campaign-clicked`, `campaign-converted`, `campaign-opened`, `campaign-sent`, `campaign-viewed`, `digistore-affiliation`, `email-clicked`, `email-opened`, `email-sent`, `email-viewed`, `event-subscribed`, `facebook-audience`, `form-subscribed`, `kajabi-activated`, `kajabi-deactivated`, `landing-page-subscribed`, `outbound-activated`, `payment-chargeback`, `payment-completed`, `payment-deferred`, `payment-expired`, `payment-received`, `payment-refunded`, `payment-subsequent`, `plugin-inbound-finished`, `plugin-inbound-inprogress`, `plugin-inbound-ready`, `plugin-inbound-started`, `rebill-canceled`, `rebill-canceled-lastday`, `rebill-resumed`, `request-email-subscribed`, `request-sms-subscribed`, `smartlink`, `sms-clicked`, `sms-sent`, `tag`, `taggingpixel-triggered`, `unknown`): Only tags of this type, "tag" being the manual ones; omit for every type
 - `onlyWritable` — null | boolean: Only manual tags the write tools may touch; omit to include the ones KlickTipp sets itself
 - `multiValue` — null | boolean: true: tags a contact can carry once per subscription; false: once overall; omit for both
 - `systemRole` — null | string (einer von `test-contact`): Only tags with this system role; "test-contact" marks contacts that receive test emails
@@ -33,7 +34,7 @@ Parameter:
 
 **Get tag**
 
-Returns one tag of a KlickTipp account with the context needed to tell what it means: its type, whether it can be written, what it stands for, the entity behind it for tags KlickTipp puts on contacts itself, the internal note and labels of the account, how many contacts carry it, and which tags a contact is subscribed to or unsubscribed from when this tag is assigned. Also says whether this is the tag the app marks test contacts with.
+Reads a tag’s type, meaning, origin, writability, notes, labels and contact count. Also reports tags automatically subscribed or unsubscribed when assigned, whether it marks test contacts, and usedBy: the automations, newsletters, forms and other entities that reference it.
 
 Parameter:
 
@@ -44,7 +45,7 @@ Parameter:
 
 **Create manual tag**
 
-Creates a manual tag in KlickTipp, one that is assigned deliberately rather than by KlickTipp itself. Creating a tag assigns it to nobody and changes no contact. Tags are never created as a side effect elsewhere, so a tag a contact should carry has to be created here first. The name has to be unique within the account. The description is what tells a later reader what the tag means.
+Creates a manual tag with a unique account name and optional meaning. Assigns it to no contacts and triggers no automations.
 
 Parameter:
 
@@ -56,7 +57,7 @@ Parameter:
 
 **Update manual tag**
 
-Changes the name or the description of a manual tag in KlickTipp. Only manual tags can be changed: a tag KlickTipp puts on contacts itself takes its name from the newsletter, automation or form behind it and is refused. Renaming a tag does not change who carries it and does not break the campaigns and automations that use it, since those refer to its ID -- but the result lists them, because a rename shows up wherever the name is read. Everything else about the tag, including its auto-subscribe configuration and whether it is single value, stays as it is.
+Updates a manual tag’s name or description; system-generated tags are refused. Renaming appears wherever the tag is displayed but keeps its ID, contacts and campaign references. Other tag settings stay unchanged.
 
 Parameter:
 
@@ -69,7 +70,7 @@ Parameter:
 
 **Delete manual tag**
 
-Deletes a manual tag in KlickTipp and takes it off every contact that carries it. Only manual tags can be deleted; a tag KlickTipp puts on contacts itself is refused. A tag that campaigns, automations or other entities still use is refused as well, and the refusal names them, so nothing that depends on the tag breaks silently. This cannot be undone, so only call it for a tag the user has explicitly asked to delete.
+Deletes a manual tag permanently and removes it from every contact carrying it. System tags and tags referenced by campaigns, automations or other entities are refused with dependencies. Requires the user to request deletion of this tag.
 
 Parameter:
 
@@ -80,7 +81,7 @@ Parameter:
 
 **Assign manual tag**
 
-Assigns one existing writable manual tag to one contact. This may immediately start or alter campaigns, autoresponders, outbound events and automations. The caller must explicitly approve those effects. Unknown, foreign or non-manual tags are rejected and never created.
+Assigns an existing manual tag to a contact; this may start campaigns, outbound events or automations. Requires approval of those effects; does not create tags.
 
 Parameter:
 
@@ -94,7 +95,7 @@ Parameter:
 
 **Remove manual tag**
 
-Removes one existing writable manual tag from one contact. This may immediately alter campaigns, autoresponder queues and automations, so the caller must explicitly approve those effects. Removing a tag does not unsubscribe-contact the contact and changes no subscription or channel state.
+Removes an existing manual tag from a contact; this may alter campaign queues and automations. Requires approval of those effects. Does not unsubscribe the contact.
 
 Parameter:
 

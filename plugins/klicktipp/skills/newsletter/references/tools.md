@@ -19,6 +19,7 @@ identical call changes nothing.
 | `configure-newsletter-delivery` | Validates against the lists it returns itself (`availableSenderAddresses`, `availableSenderDomains`). **Address and domain belong together** — changing only the address leaves the old domain and is refused. An empty domain list means the account picks no domain. `linkTracking` cannot be switched off without an own sending domain. |
 | `get-utm-tracking-settings` | `R` — what `utm_campaign` is filled with. With `email-name` the newsletter's internal name is the campaign name; any other value means `utmCampaignName` is not the only thing that decides. |
 | `preview-email-editor` | `R` — the **draft**, unpublished edits included, placeholders unresolved. Proof of the look, not of a recipient's footer. |
+| `preview-personalized-newsletter` | `R` — the **published** email for one contact: placeholders filled, and the signature the dispatch picks for them. The only per-recipient check of the footer; refused for a body never published. An AI email is generated and can consume AI credits. |
 | `search-signatures` | `R` — usable signatures only unless `includeUnusable`; the order is **not** the tag priority. `signatureId: 0` for "pick by tags" is not an entry of this list. |
 | `send-newsletter-test` | Carries the **published** content — run `publish-newsletter-email-content` first, otherwise `newsletter_send_content_publish_required`. An address that is not yet a contact **becomes one and gets tagged**, and tagging starts automations. Newer draft changes produce a `warnings`: the test shows the older state. |
 | `prepare-newsletter-dispatch` | Does not send. Never say "sent" afterwards. |
@@ -37,6 +38,12 @@ the server rejects what breaks them:
 | HTML | `%Link:Unsubscribe%` as a link `href`, plus `%User:FirstName%`, `%User:LastName%`, `%User:Street%`, `%User:Zip%`, `%User:City%`, `%User:Country%` | — |
 | plain text | the same placeholders; the unsubscribe one may be plain text | — |
 | transactional HTML | the address placeholders; `%Link:SubscriberInfo%` recommended | **`%Link:Unsubscribe%`** |
+
+`%Link:SubscriberInfo%` in an ordinary signature lets recipients open their stored-data page.
+Its absence may produce the non-blocking publish warning
+`WarningNoSubscriberInfoLinkInUsedSignature`, even when `%Link:Unsubscribe%` is present and the
+email body validator reports no findings. Inspect the signature actually selected for the
+newsletter; changing a shared default signature affects other emails that use it.
 
 Accounts permitted to omit address details are exempt from the address placeholders, never from the
 unsubscribe link.

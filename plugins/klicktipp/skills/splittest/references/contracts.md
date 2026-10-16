@@ -13,7 +13,7 @@ tut und woran man sich stößt, steht in [tools.md](tools.md).
 
 **Read split test**
 
-Reads a split test whole: the share of the audience the variants are sent to, the measuring period, the winner criterion, whether it has started, and every variant with its emailId, label ("A", "B"), name, subject and editorUrl. The test is named either by "campaignId" -- the newsletterId of get-newsletter -- or by the "emailId" of one variant, which answers with that variant's test and its siblings; exactly one of the two, never both. "needsMoreVariants" is here -- a fresh test has one variant and cannot be sent until it has two -- and so is "hasStarted", which is what makes every further change refuse. Variants are changed by add-newsletter-split-test-variant, -update and -remove, the settings by configure-newsletter-split-test, the content of a variant by the email tools through its editorUrl. A campaign that is not a split test is refused, not answered with an empty test.
+Reads an email newsletter split test: audience share, duration, winner criterion, start state and variants with their email IDs, subjects and editor URLs. Identify it by campaignId or one variant emailId, not both. A fresh test has one variant; needsMoreVariants indicates whether it can be sent. A non-split-test campaign is refused.
 
 Parameter:
 
@@ -25,19 +25,18 @@ Parameter:
 
 **Read split test results**
 
-Reads what a split test found out: every arm with its label ("A", "B"), its email, and how many contacts opened, clicked and converted, plus the revenue attributed to it. winnerBy names the criterion the test is decided by. The winner is reported, never computed: while the measuring period runs, isDecided is false and winnerLabel is null -- the arm that happens to lead is not the winner, and calling it early is how a test gets decided before it has said anything. A campaign that is not a split test is refused rather than answered with an empty result. The test's configuration and its arms are get-newsletter-split-test; one newsletter as a whole is get-campaign-statistics.
+Reads an email newsletter split test's results by variant: opens, clicks, conversions, revenue and the reported winner. While the test is running, isDecided is false and winnerLabel is null; a leading variant is not yet the winner. For the whole campaign's totals use get-campaign-statistics. Non-split-test campaigns are refused.
 
 Parameter:
 
 - `newsletterId`* — integer (minimum 1): ID of the split-test newsletter, as get-newsletter reports it
 - `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in
 
-
 ## `add-newsletter-split-test-variant`
 
 **Add split test variant**
 
-Adds a test variant to the split test of a campaign and returns the test with all its variants and their editorUrl. With "copyFromEmailId" the variant is a copy of an existing one, otherwise it is empty. A split test needs at least two variants before it can be sent; a fresh one has exactly one. Adding a variant redistributes the audience share evenly. Refused once the test has started. The contents of a variant are written through the tools that take its editorUrl, its subject and preheader through update-newsletter-split-test-variant, the test settings through configure-newsletter-split-test. Nothing is sent.
+Adds an email newsletter split-test variant, empty or copied from copyFromEmailId. Returns all variants and their editor URLs; audience shares are redistributed evenly. A test needs at least two variants to send. Refused after the test starts; sends nothing.
 
 Parameter:
 
@@ -49,7 +48,7 @@ Parameter:
 
 **Remove split test variant**
 
-Removes one test variant from the split test of a campaign and returns the remaining variants. The variant is its own email: removing it deletes that email with everything in it, and there is no undo. The last variant cannot be removed, and a test that has started refuses the change. Removing a variant redistributes the audience share evenly. Test settings are written through configure-newsletter-split-test. Nothing is sent.
+Removes an email newsletter split-test variant and deletes its email and content permanently. Returns the remaining variants with evenly redistributed shares. The last variant cannot be removed; a started test refuses the change. Sends nothing.
 
 Parameter:
 
@@ -61,7 +60,7 @@ Parameter:
 
 **Write split test variant**
 
-Writes internal name, subject and preheader of one test variant of a split test campaign, addressed by its email ID as get-newsletter lists it in splitTestVariants, and returns the test with all variants. This is the only place a variant's subject can be set; update-newsletter-draft refuses a split test. Writing subject or preheader invalidates every contentRevision read from this variant. Omitted arguments keep their value, a call without any change is refused, and a started test refuses the write. The body of a variant is written by the block tools through its editorUrl, the test settings through configure-newsletter-split-test. Nothing is sent.
+Updates one email newsletter split-test variant's internal name, subject or preheader by emailId. This is where a variant's subject is set; its body uses the email editor. Omitted values stay unchanged. Changing subject or preheader invalidates earlier contentRevision values. Refused after the test starts; sends nothing.
 
 Parameter:
 
@@ -76,7 +75,7 @@ Parameter:
 
 **Configure split test**
 
-Writes the settings of a split test -- the audience share sent to the test variants, the measuring period and the winner criterion -- and returns the test with its variants. Omitted arguments keep their value, a call without any change is refused, and a started test refuses the write. Whether a campaign is a split test at all is decided at creation and cannot be changed here. "conversions" and "revenue" require the conversion pixel and are refused without it; "opens" and "clicks" are always available. Variants are changed by add-newsletter-split-test-variant, -update and -remove. Nothing is sent.
+Configures an email newsletter split test's audience share, measuring period and winner criterion. Omitted settings stay unchanged. Conversions and revenue require the conversion pixel; opens and clicks do not. Refused after the test starts; sends nothing.
 
 Parameter:
 

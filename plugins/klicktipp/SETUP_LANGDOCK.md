@@ -64,6 +64,8 @@ These links always point at the latest release:
 
 | Skill | Download |
 |---|---|
+| `account-setup` | [klicktipp-skill-account-setup.zip](https://github.com/klicktipp/agent-plugins/releases/latest/download/klicktipp-skill-account-setup.zip) |
+| `automation` | [klicktipp-skill-automation.zip](https://github.com/klicktipp/agent-plugins/releases/latest/download/klicktipp-skill-automation.zip) |
 | `contacts` | [klicktipp-skill-contacts.zip](https://github.com/klicktipp/agent-plugins/releases/latest/download/klicktipp-skill-contacts.zip) |
 | `custom-fields` | [klicktipp-skill-custom-fields.zip](https://github.com/klicktipp/agent-plugins/releases/latest/download/klicktipp-skill-custom-fields.zip) |
 | `dashboard` | [klicktipp-skill-dashboard.zip](https://github.com/klicktipp/agent-plugins/releases/latest/download/klicktipp-skill-dashboard.zip) |
@@ -87,13 +89,15 @@ and give the Agent Builder this:
 
 ```text
 Create an agent "KlickTipp". It works in the user's KlickTipp account through the
-KlickTipp integration. Attach the KlickTipp integration and the skills contacts,
-custom-fields, dashboard, dns-setup, email, email-template-generator, newsletter, opt-in,
-splittest and tags.
+KlickTipp integration. Attach the KlickTipp integration and the skills account-setup,
+automation, contacts, custom-fields, dashboard, dns-setup, email, email-template-generator,
+newsletter, opt-in, splittest and tags.
 Instructions: Read the matching skill before the first KlickTipp tool call of a
-task. Never send a newsletter yourself: prepare-newsletter-dispatch returns a
-confirmation link, hand it to the user with subject, audience, recipient estimate,
-sender and time. Before any write without undo, say what it costs and ask.
+task. Never send a newsletter yourself: before prepare-newsletter-dispatch, show
+subject, audience, recipient estimate, sender and time. A person confirms the send
+in the client's confirmation dialog; without one, the tool returns a link where the
+user continues in KlickTipp. Report sent or scheduled only once get-newsletter shows
+it. Before any write without undo, say what it costs and ask.
 ```
 
 The builder can only attach what is already connected in the workspace, so the

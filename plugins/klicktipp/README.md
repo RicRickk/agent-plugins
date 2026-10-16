@@ -39,7 +39,7 @@ Both targets read the same `.mcp.json`.
 | `delete-newsletter-draft` | discard a draft |
 | `configure-newsletter-delivery` | sender name, sender address, reply address, signature |
 | `send-newsletter-test` | test send to any address — the recipient becomes a tagged contact, which can start an automation; for a split test, one variant per call |
-| `prepare-newsletter-dispatch` | prepare the real dispatch and return a confirmation URL |
+| `prepare-newsletter-dispatch` | send or schedule after the user confirms the recipient estimate in the client's dialog; a client without that dialog gets the schedule page instead |
 | `cancel-newsletter-dispatch` | take a running dispatch back — it does not unsend what already left |
 
 **Signatures and sender domains**
@@ -55,6 +55,7 @@ Both targets read the same `.mcp.json`.
 | `get-sender-domain-dns-setup` | the DNS records a domain needs, and what was measured last |
 | `create-sender-domain` | register a domain — unverified until its DNS records are in place |
 | `request-sender-domain-dns-check` | ask for a fresh DNS check once the records are set |
+| `validate-account-sending-readiness` | whether the account has a sender path at all: stored DNS state, sender addresses, signatures, opt-in processes, contacts |
 
 No KlickTipp tool writes DNS. The `dns-setup` skill guides provider changes or uses a connected provider integration with the user's approval.
 
@@ -69,6 +70,7 @@ No KlickTipp tool writes DNS. The `dns-setup` skill guides provider changes or u
 | `replace-email-editor-content-from-document` | store a finished editor document as the body — nothing is converted, so nothing is lost |
 | `validate-email-editor-content` | review the assembled email before it is published |
 | `publish-newsletter-email-content` | make the reviewed body the one a dispatch would send |
+| `preview-personalized-newsletter` | the published newsletter for one contact, placeholders and signature filled — sends nothing |
 | `email-<block>-add` | add one block: paragraph, heading, text, button, image, list, divider, spacer, row, table, menu, social, icons, video, HTML |
 | `email-<block>-write` | change the content of an existing block of that kind |
 | `email-<block>-style-write` | change the styling of a block, a column, a row or the page |
@@ -106,6 +108,10 @@ activation refuse a split test everywhere, because none of them can pick an arm
 | `search-contacts` · `get-contact` | find contacts by tag, field value or subscription, and read one |
 | `upsert-subscribed-contact` | add one contact by hand, subscribed at once and with its field values — the Add Contact screen |
 | `update-contact-values` | write field values on a contact that already exists |
+| `update-contact-email` | replace one email address of a contact; its status stays and nothing is confirmed |
+| `delete-contact` | delete a contact with both channels, its subscriptions, tags, values and history — no undo |
+| `get-contact-history` · `add-contact-history-note` | read a contact's history, and add an internal note that can never be removed |
+| `search-duplicate-contacts` | the duplicate pairs KlickTipp detected; merging stays in the app |
 | `search-tags` · `get-tag` · `create-manual-tag` · `update-manual-tag` | the manual tags of the account |
 | `tag-contact` · `untag-contact` | put a manual tag on a contact, or take it off |
 | `search-custom-fields` · `get-custom-field` · `create-custom-field` · `update-custom-field` | the custom field definitions |
@@ -158,18 +164,19 @@ current revision; activating is confirmed by a person in KlickTipp
 | `create-automation-draft` · `update-automation-draft` | create an inactive draft with its start action, optionally as a copy, and change its name, notes and labels |
 | `add-automation-<kind>-action` · `update-automation-<kind>-action` | one pair per action type: email, SMS, notifications, wait, decision, goal, tag, untag, set field, go-to, exit, restart, start and stop another automation, split test, outbound, name and gender detection, unsubscribe; the start action is configured with `update-automation-start-action` |
 | `move-automation-action` · `copy-automation-action` · `delete-automation-action` | rearrange the graph; a copied action shares its message, a deleted one leaves its email in place |
+| `delete-automation-draft` · `delete-automation` · `get-campaign-dependencies` | delete an inactive draft, or an automation that is neither active nor scheduled, and see what still uses it — no undo |
 | `get-automation-editor-capabilities` · `search-automation-editor-references` | which settings and condition operators an action takes, and the IDs of the tags, fields, messages and automations it names |
 | `estimate-automation-audience` | estimate the initial audience of an automation, in batches |
 | `prepare-automation-activation` | validate and return the activation dialog — it activates nothing |
 | `stop-automation` · `move-automation-contacts` | stop a running automation, or move waiting contacts to another action — both reach contacts already in it |
+| `get-contact-automation-status` · `move-contact-past-automation-wait` | where a contact stands in the automations, and ending one contact's wait early — previews first |
 | `search-automation-templates` · `get-automation-template` · `import-automation-template` | the Business Automation Masterclass catalogue and shared template links: find one, see what it brings, import it paused |
-| `get-automation-email` · `create-…` · `update-…` · `delete-automation-email-draft` · `copy-automation-email` | the emails of an automation; the same without copying for notification emails, the content is written with the email tools above |
-| `get-automation-sms` · `create-…` · `update-…` · `delete-automation-sms-draft` · `replace-automation-sms-content` · `copy-automation-sms` | the SMS of an automation; the same without copying for notification SMS |
+| `get-automation-email` · `create-…` · `update-…` · `delete-automation-email-draft` · `copy-automation-email` | the emails of an automation; the same for notification emails (`copy-notification-email`), the content is written with the email tools above; `preview-personalized-email` shows a published one for one contact |
+| `get-automation-sms` · `create-…` · `update-…` · `delete-automation-sms-draft` · `replace-automation-sms-content` · `copy-automation-sms` | the SMS of an automation; the same for notification SMS (`copy-notification-sms`); `check-sms-readiness` names what keeps one from sending |
 | `send-automation-email-test` · `send-notification-email-test` · `send-automation-sms-test` · `send-notification-sms-test` | test sends — an unknown address becomes a tagged contact, an SMS test costs SMS credit |
 | `send-email-for-gmail-placement-preview` · `get-email-gmail-placement-preview-result` | the Gmail inbox placement check of an email, and its result |
 
-Deleting an automation or an automation draft, the Facebook-audience and
-FullContact actions, and the personalized preview and spam check of an
+The Facebook-audience and FullContact actions and the spam check of an
 automation email are not available here; they stay in KlickTipp.
 
 There is no separate delivery-status tool: where a newsletter stands with its
@@ -183,13 +190,12 @@ Everything happens inside the KlickTipp account the login belongs to, or a
 subaccount that account may support. Read tools run without a prompt; every
 write tool is annotated so your agent asks first.
 
-**No tool sends a newsletter.** `prepare-newsletter-dispatch` validates account,
-permission, content, audience and sender, states who would receive it, and
-returns a short-lived single-use confirmation URL. Only the logged-in person, by
-opening that URL in KlickTipp and confirming there, hands the newsletter over —
-and that step does reach real recipients and cannot be taken back. If a bound
-value changes or the link expires, the confirmation is refused and a new one has
-to be prepared.
+**No newsletter goes out without a person's confirmation.** `prepare-newsletter-dispatch`
+validates account, permission, content, audience and sender and asks the person
+to confirm the recipient estimate in the client's own dialog; no, cancel or no
+answer sends nothing. A client that cannot show the dialog is refused with the
+newsletter's schedule page, where the person sends it in KlickTipp. A confirmed
+dispatch reaches real recipients and cannot be taken back.
 
 These writes have no undo, and the agent is expected to say so before it calls
 them:
@@ -223,13 +229,20 @@ it and returns the activation dialog; a person starts it there. Building and
 importing reach nobody — a draft is inactive and an imported automation is
 paused — but both leave their objects in the account. `stop-automation` and
 `move-automation-contacts` act on contacts already in a running automation and
-cannot be undone; the agent is expected to say what will happen and ask first.
+cannot be undone, and neither can `delete-automation`, `delete-automation-draft`
+or ending a contact's wait with `move-contact-past-automation-wait`; the agent is
+expected to say what will happen and ask first.
 
 `get-opt-in-process-redirect-url` returns a URL that identifies a subscriber — it
 carries subscriber ID, email address, list, subscriber key and referral link.
 Treat its result as personal data.
 
 ## Skills
+
+`skills/account-setup` — brings a new or half-set-up account to the smallest
+usable setup for the customer's goal: what already exists, sending readiness,
+sender, domain, opt-in and contacts, and a first safe newsletter test, handing
+each part to the skill that owns it.
 
 `skills/email` — the content of one email: what each block is and which fields it
 takes, how to assemble a finished, professional email from a starting point, and
@@ -260,8 +273,9 @@ waits, dated campaigns anchored on a date field, and importing a Masterclass
 template or a shared template link.
 
 `skills/contacts` — find, read, add, subscribe and unsubscribe contacts, set
-their field values, and read and change the account's settings, its blocklist
-included. A pending double opt-in stays pending: nothing here confirms it for
+their field values and email address, read their history, find duplicates,
+delete a contact, review a CSV or Excel contact export before an import, and
+read and change the account's settings, its blocklist included. A pending double opt-in stays pending: nothing here confirms it for
 the recipient.
 
 `skills/tags` — find, create, rename and delete manual tags, put them on and
@@ -280,12 +294,14 @@ no layout.
 
 The tool-focused skills carry `references/` folders with the tools they use,
 their answer shapes and their pitfalls. `dns-setup` covers provider guidance
-directly. `email`, `newsletter`, `splittest` and `dns-setup` are in English; the
+directly. `account-setup`, `email`, `newsletter`, `splittest`, `dashboard` and `dns-setup` are in English; the
 others are in German, like the editor itself.
 
-**What the skills describe is what the server serves.** A tool that is not in
-them does not exist here, and neither does the capability behind it: there is,
-for example, no KlickTipp tool that writes DNS records — `dns-setup` can use a
+**The server serves more than the skills describe.** Calendars, countdowns,
+smart links, tagging pixels, website feedback forms, saved contact audiences,
+saved email templates, SMS newsletters and SMS follow-ups have tools with their
+own descriptions but no skill yet. What a skill says is not available is not
+available: there is, for example, no KlickTipp tool that writes DNS records — `dns-setup` can use a
 separately connected provider integration, or guide the owner through their DNS provider.
 
 The personalized email block is a case of its own: the add-on behind it is paid

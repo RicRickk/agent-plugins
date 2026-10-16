@@ -18,6 +18,7 @@ Read the relevant measurements first. Keep their units, time windows and denomin
 | A tag's current contact count and meaning | `get-tag` |
 | Contact channels matching a manual tag | `search-contacts` |
 | Current tag carriers grouped by last tagging date | `get-tag-statistics` |
+| A contact's actual tagging events | `get-contact-history` |
 | A saved statistics report | `get-statistics-report` |
 
 The published contracts of the statistics tools, word for word, are in [references/contracts.md](references/contracts.md).
@@ -38,7 +39,7 @@ The account overview does not provide an account-wide contact total. A newslette
 
 ## Distinguish statistics
 
-State each number's unit, filters and time window before comparing it with another. `get-tag-statistics` counts only **current tag carriers**, grouped by their **last tagging** in the requested period. It is not a complete tagging event history: removals and overwritten earlier tagging times can disappear. A zero recent value does not prove no assignment or removal happened. Do not use it to reconstruct Top 5 selection or missing `added...` fields of an excluded tag. This plugin has no tool for one contact's tagging history; say so instead of inferring it.
+State each number's unit, filters and time window before comparing it with another. `get-tag-statistics` counts only **current tag carriers**, grouped by their **last tagging** in the requested period. It is not a complete tagging event history: removals and overwritten earlier tagging times can disappear. A zero recent value does not prove no assignment or removal happened. Do not use it to reconstruct Top 5 selection or missing `added...` fields of an excluded tag. For one contact's events, read `get-contact-history`.
 
 Tag holders, digital IDs, contact-channel search rows, daily list events, newsletter recipients and historical tagging events are different units. Do not reconcile a difference by treating them as the same count. A `subscribed` channel is not a delivery guarantee.
 

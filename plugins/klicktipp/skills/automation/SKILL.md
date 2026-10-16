@@ -151,16 +151,35 @@ aus `get-automation-email` / `get-notification-email`. Diese ID gehört in `fiel
 | leerer Entscheidungszweig | erlaubt. Nichts anzuhängen ist ein fertiger Ablauf. |
 | `delete-automation-action` | braucht an einer Entscheidung `keep_yes`, `keep_no` oder `subtree`, sonst `keep_next` oder `subtree`. Die E-Mails bleiben. |
 | `move-automation-action` | `subtree` nimmt den folgenden Graphen mit; eine Entscheidung mit gefüllten Zweigen nur als Teilbaum. |
-| `copy-automation-action` | neue Aktions-ID, **dieselbe** Nachricht. Wer den Text der Kopie ändert, trifft das Original — vorher mit `copy-automation-email` / `copy-automation-sms` kopieren. Für eine Benachrichtigung gibt es über diese Verbindung kein Kopierwerkzeug: einen neuen Entwurf anlegen. |
+| `copy-automation-action` | neue Aktions-ID, **dieselbe** Nachricht. Wer den Text der Kopie ändert, trifft das Original — vorher mit `copy-automation-email` / `copy-automation-sms` kopieren (`copy-notification-email` / `copy-notification-sms` für eine Benachrichtigung). |
 | `add-automation-go-to-action` | springt zu einer Aktions-**ID** aus `get-automation`, nicht zu einem Namen. |
-| SMS-Testversand abgelehnt | Die Ablehnung nennt `check-sms-readiness`; das gibt es über diese Verbindung nicht. Prüfe mit `get-automation-sms`, ob Anbieter, Absender und Text gesetzt sind. |
+| SMS-Testversand abgelehnt | Die Ablehnung nennt `check-sms-readiness`. Ruf es mit der ID der gespeicherten SMS (nicht der Aktions-ID) und `kind` (`automation` oder `notification`) auf; es nennt, was an Inhalt, Absender oder Anbieter fehlt, und sendet nichts. |
+
+## Löschen, Vorschau, ein Kontakt an einer Wartezeit
+
+- **Löschen.** `delete-automation-draft` löscht einen inaktiven Entwurf nur, solange er keinen
+  Kontaktverlauf und keine Abhängigkeiten hat. `delete-automation` löscht eine Automation, die weder
+  aktiv noch geplant ist, samt wartender Kontakte, Statistik, System-Tags und Zielverlauf — eine
+  aktive erst mit `stop-automation` anhalten. Hat sie Kontaktverlauf, weist der erste Aufruf mit den
+  Zahlen ab; `deleteContactHistory=true` erst, nachdem die Person dem Verlust zugestimmt hat. Andere
+  Abhängigkeiten blockieren das Löschen; `get-campaign-dependencies` nennt die Automationen und
+  Kampagnen, die sie noch verwenden. Beide brauchen die aktuelle `revision` und `confirm=true`, das du
+  nur setzt, wenn die Person genau diese Automation gelöscht haben will. Die verwendeten E-Mails
+  bleiben. Kein Undo.
+- **Personalisierte Vorschau.** `preview-personalized-email` zeigt eine **veröffentlichte**
+  Automations- oder Benachrichtigungs-E-Mail für einen bestehenden Kontakt, Platzhalter gefüllt;
+  ungespeicherte Änderungen zeigt `preview-email-editor`. Sendet nichts, eine KI-E-Mail kann aber
+  Credits verbrauchen.
+- **Einen Kontakt an einer Wartezeit vorbeischieben.** `get-contact-automation-status` zeigt, wo ein
+  Kontakt steht; `move-contact-past-automation-wait` beendet eine überspringbare Wartezeit vorzeitig.
+  Ohne `confirm` ist es eine Vorschau, die in `immediateActions` nennt, was der Kontakt sofort
+  bekommt. Folgende E-Mails, SMS und Tags können ihn danach früher erreichen — `confirm=true` erst,
+  wenn die Person diesem Kontakt und dieser Automation zugestimmt hat. Braucht Administratorrechte.
 
 ## Was diese Verbindung nicht kann
 
-Eine Automation oder einen Automations-Entwurf **löschen**, die Facebook-Audience- und
-FullContact-Aktionen, die personalisierte Vorschau und den Spam- und Linkcheck einer
-Automations-E-Mail. Das geht in KlickTipp selbst; sag es so, statt einen Umweg zu bauen. Einen
-Entwurf, den niemand mehr braucht, lässt du inaktiv stehen.
+Die Facebook-Audience- und FullContact-Aktionen und den Spam- und Linkcheck einer
+Automations-E-Mail. Das geht in KlickTipp selbst; sag es so, statt einen Umweg zu bauen.
 
 ## Grenzen
 
@@ -173,6 +192,7 @@ erreicht hat → `dashboard`.
 Bauen erreicht niemanden (der Entwurf ist inaktiv), und ein Vorlagen-Import auch nicht — die
 importierte Automation ist pausiert. Beides legt aber Objekte im Konto an, die bleiben; Name und
 Zuordnungen also vor dem Import klären, nicht danach. `stop-automation` und
-`move-automation-contacts` greifen in den laufenden Betrieb ein: **sag, was passiert, hol die
-Zustimmung, dann ruf auf.** Ein Testversand an eine Adresse, die das Konto noch nicht kennt, legt
+`move-automation-contacts` greifen in den laufenden Betrieb ein, ebenso
+`move-contact-past-automation-wait`; `delete-automation` und `delete-automation-draft` lassen sich
+nicht zurücknehmen: **sag, was passiert, hol die Zustimmung, dann ruf auf.** Ein Testversand an eine Adresse, die das Konto noch nicht kennt, legt
 einen getaggten Kontakt an, der Automationen starten kann; ein SMS-Test kostet SMS-Guthaben.

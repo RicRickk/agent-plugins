@@ -40,8 +40,9 @@ keine weitere. Frag die Person erst danach.
 
 `originName`/`originId` einer Tag-Definition sagen, woher der **Tag** stammt — nicht, wie ein
 bestimmter Kontakt ihn bekam. Auch ein manueller Tag kann von einer Kampagne vergeben werden; leere
-Herkunftsfelder beweisen nicht, dass keine Kampagne ihn setzte. Eine Startzahl oder ein
-Tagging-Ereignis belegt keine Gültigkeit je Adresse.
+Herkunftsfelder beweisen nicht, dass keine Kampagne ihn setzte. Wer einen Tag an einem Kontakt gesetzt
+hat, steht in `get-contact-history` mit `category: "tagging"` (Skill `contacts`). Eine Startzahl oder
+ein Tagging-Ereignis belegt keine Gültigkeit je Adresse.
 
 ## Tags anlegen und pflegen
 
@@ -94,7 +95,7 @@ ab.
 - `search-tags` filtert nach `query`, `type` (`tag` = manuell; `email-opened`, `campaign-sent` …),
   `onlyWritable`, `multiValue` und `systemRole: "test-contact"` (der Marker an Testempfängern). Die
   Beschreibung steht nur in `get-tag`, das auch zählt, wie viele Kontakte den Tag tragen.
-- „Wer hat Tag X?" ist `search-contacts` mit `manualTagId` — Seiten ohne Gesamtzahl; die Zahl ist
+- „Wer hat Tag X?" ist `search-contacts` mit `tagId` — Seiten ohne Gesamtzahl; die Zahl ist
   `get-tag`.
 
 `accountId` ist optional; weggelassen heißt das Konto des Zugangs. Sind mehrere Konten verknüpft,

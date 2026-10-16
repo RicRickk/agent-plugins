@@ -75,20 +75,23 @@ sind. Eine Bedingung besteht aus Operator, `field` und `value`:
 ## Der Rest der Familie
 
 **Graph:** `get-automation` (Graph, IDs, Revision), `search-automations`, `validate-automation`,
-`create-automation-draft`, `update-automation-draft`, `delete-automation-action`,
-`move-automation-action`, `copy-automation-action`.
+`create-automation-draft`, `update-automation-draft`, `delete-automation-draft`, `delete-automation`,
+`get-campaign-dependencies`, `delete-automation-action`, `move-automation-action`,
+`copy-automation-action`.
 
 **Nachrichten:** für Automations-E-Mails `get-automation-email`, `create-automation-email-draft`,
 `update-automation-email-draft`, `delete-automation-email-draft`, `copy-automation-email`,
-`send-automation-email-test`; dieselben ohne Kopie für Benachrichtigungs-E-Mails
-(`…-notification-email…`, Test mit `send-notification-email-test`); für beide
-`send-email-for-gmail-placement-preview` und `get-email-gmail-placement-preview-result`.
+`send-automation-email-test`; dieselben für Benachrichtigungs-E-Mails (`…-notification-email…`,
+Kopie mit `copy-notification-email`, Test mit `send-notification-email-test`); für beide
+`preview-personalized-email`, `send-email-for-gmail-placement-preview` und
+`get-email-gmail-placement-preview-result`.
 SMS: `get-automation-sms`, `create-automation-sms-draft`, `update-automation-sms-draft`,
 `delete-automation-sms-draft`, `replace-automation-sms-content`, `copy-automation-sms`,
-`send-automation-sms-test`; dieselben ohne Kopie für Benachrichtigungs-SMS.
+`send-automation-sms-test`; dieselben für Benachrichtigungs-SMS (Kopie mit `copy-notification-sms`);
+für beide `check-sms-readiness`.
 
 **Betrieb:** `estimate-automation-audience`, `prepare-automation-activation`, `stop-automation`,
-`move-automation-contacts`; die Zahlen (`get-automation-statistics`,
+`move-automation-contacts`, `get-contact-automation-status`, `move-contact-past-automation-wait`; die Zahlen (`get-automation-statistics`,
 `get-automation-waiting-contact-counts`, `get-automation-email-statistics`,
 `get-automation-sms-statistics`) beim Skill `dashboard`.
 

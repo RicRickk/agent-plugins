@@ -1,6 +1,6 @@
 # Die veröffentlichten Verträge — Newsletter, Versand, Signaturen und Absenderdomains
 
-Wort für Wort das, was der Server in `tools/list` für die 20 Werkzeuge dieses Skills
+Wort für Wort das, was der Server in `tools/list` für die 22 Werkzeuge dieses Skills
 ausliefert: Beschreibung, Annotationen, jeder Parameter mit Typ, Grenzen und Beschreibung. Ein `*`
 markiert Pflichtparameter. `R` liest nur · `D` löscht oder ersetzt ohne Undo · `O` erreicht etwas
 außerhalb des Kontos · `I` ein zweiter gleicher Aufruf ändert nichts mehr.
@@ -11,19 +11,19 @@ tut und woran man sich stößt, steht in [tools.md](tools.md).
 
 ## Inhalt
 
-`search-newsletters` · `get-newsletter` · `create-newsletter-draft` ·
-`update-newsletter-draft` · `delete-newsletter-draft` ·
-`configure-newsletter-delivery` · `send-newsletter-test` · `prepare-newsletter-dispatch` ·
-`cancel-newsletter-dispatch` · `search-signatures` · `get-signature` · `create-signature` ·
-`update-signature` · `replace-signature-content` · `configure-signature-delivery` ·
-`list-sender-domains` · `get-sender-domain` · `get-sender-domain-dns-setup` ·
-`create-sender-domain` · `request-sender-domain-dns-check`
+`search-newsletters` · `get-newsletter` · `create-newsletter-draft` · `update-newsletter-draft` ·
+`delete-newsletter-draft` · `configure-newsletter-delivery` · `send-newsletter-test` ·
+`preview-personalized-newsletter` · `prepare-newsletter-dispatch` · `cancel-newsletter-dispatch` ·
+`search-signatures` · `get-signature` · `create-signature` · `update-signature` ·
+`replace-signature-content` · `configure-signature-delivery` · `list-sender-domains` ·
+`get-sender-domain` · `get-sender-domain-dns-setup` · `create-sender-domain` ·
+`request-sender-domain-dns-check` · `validate-account-sending-readiness`
 
 ## `search-newsletters` · RI
 
 **Search newsletters**
 
-Lists the email newsletters of a KlickTipp account, newest first: newsletter ID, email ID, name, delivery state, creation and dispatch moment, split-test flag and deep links. Narrow by a name fragment, by status (draft, scheduled, outgoing, sent) and by two half-open time windows on creation (createdFrom/createdBefore) and dispatch (sendDateFrom/sendDateBefore), ISO 8601 with UTC offset. Paged by cursor: hand nextCursor back unchanged with the same filters. A draft has no dispatch moment and never matches a sendDate window; a split test has no single email, its emailId is null. Subject, content, audience and statistics are read per newsletter through get-newsletter. SMS newsletters, autoresponders and automations are not included.
+Searches email newsletters by name, delivery status or creation/dispatch dates, newest first and cursor-paginated. Drafts have no dispatch date; split tests have no single email ID. Excludes SMS newsletters and follow-ups.
 
 Parameter:
 
@@ -41,7 +41,7 @@ Parameter:
 
 **Get newsletter**
 
-Returns one email newsletter of a KlickTipp account: identity, lifecycle state, editor type, split-test flag and deep links. Everything else is a projection requested through "include": "metadata" (name, note, labels, subject), "audience", "deliveryConfiguration" (sender, reply address, signature), "deliveryStatus" (send date, recipients, counters, what is missing), "audienceReach" (contacts it would reach now) and "conversionPixel" (tracking snippets for a thank-you page, one per sender domain; hand one to the user verbatim). The body is not here -- read it with get-email-editor-content. Reads only; requested projections are answered whole or the call fails. A split test has one email per variant and no single email: emailId, contentUrl and metadata.subject are null, splitTestVariants lists the variants, and deliveryConfiguration needs one of their editorUrl.
+Reads an email newsletter’s identity and lifecycle, with optional metadata, audience, delivery, reach and conversion-pixel projections. The body is in get-email-editor-content. For split tests, deliveryConfiguration needs a variant editorUrl; there is no single email ID. Hand conversion-pixel snippets to the user verbatim for installation.
 
 Parameter:
 
@@ -54,7 +54,7 @@ Parameter:
 
 **Create newsletter draft**
 
-Creates an email newsletter draft in KlickTipp -- name, subject, optional preheader -- and returns newsletter ID, email ID and deep links. Nothing is sent. A draft has no audience filter yet: an unfiltered audience means every active contact of the account (mode "all_contacts"). The subject is the line every recipient sees; changing it later through update-newsletter-draft invalidates the content revisions read before. Body: block tools (update-email-editor-text and siblings). Audience: update-newsletter-draft. Sender: configure-newsletter-delivery. "splitTest" makes it a split test, irreversibly, with one variant -- more via add-newsletter-split-test-variant, settings via configure-newsletter-split-test; needs a premium account, "conversions"/"revenue" the conversion pixel, refused before creation. "emailEditor" is fixed at creation; omit it unless the account uses the previous editor.
+Creates an email newsletter draft with a subject and optional preheader. The subject is the line every recipient sees; correcting it through update-newsletter-draft invalidates the content revisions read before. Audience defaults to all_contacts, reaching every active contact when sent. splitTest is irreversible, needs a premium account (conversions/revenue also the conversion pixel) and starts with one variant; add more with add-newsletter-split-test-variant. emailEditor defaults to drag-and-drop and is fixed at creation. Next steps: body with the block tools, audience with update-newsletter-draft, sender with configure-newsletter-delivery. Nothing is sent.
 
 Parameter:
 
@@ -62,18 +62,18 @@ Parameter:
 - `subject`* — string (minLength 1; maxLength 998): Subject line, without HTML. It is the line every recipient sees, and no part of it is derived from anything else in this call. Correcting it later is update-newsletter-draft, which invalidates the content revisions read before
 - `notes` — null | string (maxLength 1000): Internal note about the purpose of this newsletter, never part of the email
 - `preheader` — null | string (maxLength 120): Inbox preview line, at most 120 characters, without HTML; omit to leave it empty. Not part of the content document: an HTML import cannot set it
-- `emailEditor` — null | string (einer von `drag-and-drop`, `rich-text`): Editor the email is created for. Omit it, which means "drag-and-drop": that is the editor KlickTipp builds on and the one every content and design tool works with. Pass "rich-text" only when the account authors in the previous HTML editor and asked for it. The choice cannot be changed afterwards
-- `splitTest` — object | null: Makes the newsletter a split test, irreversibly: "testSizePercent" (2-98), "testDurationHours" (1-27777), "winnerBy" ("opens", "clicks", "conversions", "revenue"; the last two need the conversion pixel). All three are required and KlickTipp has no default for any of them, so any value here is a choice somebody made; together they settle what share of real recipients gets a test version and for how long. Needs a premium account; omit for a normal newsletter
+- `splitTest` — null | object: Makes the newsletter a split test, irreversibly: "testSizePercent" (2-98), "testDurationHours" (1-27777), "winnerBy" ("opens", "clicks", "conversions", "revenue"; the last two need the conversion pixel). All three are required and KlickTipp has no default for any of them, so any value here is a choice somebody made; together they settle what share of real recipients gets a test version and for how long. Needs a premium account; omit for a normal newsletter
   - `testSizePercent`* — integer (minimum 2; maximum 98)
   - `testDurationHours`* — integer (minimum 1; maximum 27777)
   - `winnerBy`* — string (einer von `opens`, `clicks`, `conversions`, `revenue`)
+- `emailEditor` — null | string (einer von `drag-and-drop`, `rich-text`): Editor the email is created for. Omit it, which means "drag-and-drop": that is the editor KlickTipp builds on and the one every content and design tool works with. Pass "rich-text" only when the account authors in the previous HTML editor and asked for it. The choice cannot be changed afterwards
 - `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in
 
 ## `update-newsletter-draft` · I
 
 **Update newsletter draft**
 
-Writes name, internal note, subject, preheader, audience and UTM campaign name of an email newsletter draft. Nothing is sent and no send date is set. Only drafts can be written; omitted arguments keep their value, a call without any change is refused. Writing subject or preheader invalidates every contentRevision read before, so read the content again before changing it. The audience replaces the previous one entirely and is given with an explicit mode -- "all_contacts" addresses every active contact of the account. The body is changed by the block tools, delivery configuration and scheduling by their own tools. Refuses a split test: its subject lives on the variants, see update-newsletter-split-test-variant.
+Updates an email newsletter draft’s name, note, subject, preheader, audience or UTM campaign name. Omitted fields stay; the supplied audience replaces the old one. Subject or preheader changes invalidate earlier content revisions. On split tests subject and preheader are refused; set them per variant with update-newsletter-split-test-variant. Sends nothing and sets no send date.
 
 Parameter:
 
@@ -96,7 +96,7 @@ Parameter:
 
 **Delete newsletter draft**
 
-Deletes an email newsletter draft in KlickTipp, along with its email, its audience conditions and its system tags. Only drafts can be deleted: a newsletter that is scheduled, on its way out or already sent is refused, and so is one that other entities still refer to -- the refusal names them. This cannot be undone, so only call it for a newsletter the user has explicitly asked to delete.
+Deletes an email newsletter draft, its email, audience conditions and system tags without undo. Refuses scheduled or sent newsletters, referenced drafts and split tests; dependency refusals name what still uses the draft; a split-test refusal returns the appUrl for manual deletion. Only delete a draft the user explicitly asked to delete.
 
 Parameter:
 
@@ -107,7 +107,7 @@ Parameter:
 
 **Configure newsletter delivery**
 
-Writes the delivery configuration of an email newsletter in KlickTipp: sender name, sender address, reply address, sending domain and signature. Reports back what is still missing before the newsletter could be sent, together with the sender addresses, sending domains and signatures the account may use. Concrete sender addresses are checked against their live verified domains; changing the address also derives and stores its matching domain. The sender and domain dispatch-profile sources are selected together. This tool neither schedules nor activates anything and reaches no recipient -- activation is a separate tool. Arguments that are left out keep their current value. Only a newsletter that was never scheduled can be configured: any other lifecycle state is refused before anything is written.
+Configures a never-scheduled email newsletter’s sender, reply address, domain, signature and tracking settings. Omitted settings stay. Turning off link tracking requires a valid sending domain. Reports missing send requirements and usable identities; a changed sender address derives its verified domain. senderEmailMode and senderDomainMode use signature_dispatch_profile together or not at all. Split tests are refused; their variant senders are set in the app. Does not schedule or send.
 
 Parameter:
 
@@ -115,11 +115,11 @@ Parameter:
 - `senderNameMode` — null | string (einer von `explicit`, `account_default`, `signature_dispatch_profile`): "explicit" (pass senderName), "account_default" or "signature_dispatch_profile"; omit to keep
 - `senderName` — null | string (maxLength 250): Name the recipients see as the sender, for mode "explicit" only; omit to keep the current one
 - `senderEmailMode` — null | string (einer von `explicit`, `account_default`, `signature_dispatch_profile`): "explicit" (pass senderEmail), "account_default" or "signature_dispatch_profile"; omit to keep
-- `senderEmail` — null | string (maxLength 250): Sender address, one of the account's sender addresses; for mode "explicit"; omit to keep
+- `senderEmail` — null | string (maxLength 250): Sender address configured for the account; for mode "explicit"; omit to keep
 - `replyToEmailMode` — null | string (einer von `explicit`, `account_default`, `signature_dispatch_profile`): "explicit" (pass replyToEmail), "account_default" or "signature_dispatch_profile"; omit to keep
 - `replyToEmail` — null | string (maxLength 250): Address answers go to, for mode "explicit" only; omit to keep the current one
-- `senderDomainMode` — null | string (einer von `explicit`, `account_default`, `signature_dispatch_profile`): "explicit" (pass senderDomain), "account_default" or "signature_dispatch_profile"; omit to keep
-- `senderDomain` — null | string (maxLength 250): Domain the newsletter is sent through, one of availableSenderDomains; for mode "explicit"; omit to keep
+- `senderDomainMode` — null | string (einer von `explicit`, `account_default`, `signature_dispatch_profile`): "explicit" (pass senderDomain), "account_default" for automatic resolution or "signature_dispatch_profile"; omit to keep
+- `senderDomain` — null | string (maxLength 250): Matching verified domain; for mode "explicit"; omit to derive it when changing the sender address
 - `signatureId` — null | integer (minimum 0): ID of the signature under the newsletter; 0 lets KlickTipp pick one by tagging; omit to keep
 - `linkTracking` — null | boolean: Whether KlickTipp rewrites the links so clicks are counted; true is the normal case, omit to keep
 - `headerLinks` — null | boolean: Whether KlickTipp puts its own line above the body with browser view, unsubscribe and report-spam links; omit to keep
@@ -129,7 +129,7 @@ Parameter:
 
 **Send newsletter test**
 
-Sends one email newsletter as a test to a single address, so its content can be checked before it goes out -- the same send the test dialog of KlickTipp performs, with the same rules. Any address may receive one, and an address that is not a contact of the account yet becomes one and is tagged as a test recipient, which can start automations; name the address and say what it will become before calling this. A test carries the PUBLISHED content of the email: a body that was never published is refused -- publish it with publish-newsletter-email-content -- and one changed after publication is sent with a warning that the test shows the older content. The audience of the newsletter is never a recipient, and its delivery state does not change. For a split test, messageId takes the emailId of the variant to send; schedule and winner selection stay untouched.
+Sends a newsletter’s published email as a test to one specified address, not its audience. An address not yet in the account becomes a tagged test contact and may start automations. Name the address and disclose that effect before calling. A never-published body is refused (publish it with publish-newsletter-email-content); edits made since publication are not sent (the test uses the older published body). For a split test, messageId selects the variant emailId.
 
 Parameter:
 
@@ -138,11 +138,25 @@ Parameter:
 - `messageId` — null | integer (minimum 1): For a split test: the emailId of the variant to test, as get-newsletter-split-test lists it; omit otherwise
 - `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in
 
+## `preview-personalized-newsletter` · DO
+
+**Preview Personalized Newsletter**
+
+Previews a published newsletter email personalized for one contact, including placeholders and signature. Unpublished edits are not shown; preview-email-editor shows the draft instead. AI previews may consume credits. For a split test specify messageId. Sends nothing and changes no contact. Campaign and notification emails use preview-personalized-email.
+
+Parameter:
+
+- `newsletterId`* — integer (minimum 1): ID of the email newsletter
+- `contactId`* — integer (minimum 1): ID of the contact to personalize for, from search-contacts or get-contact
+- `referenceId` — integer (minimum 0; Default `0`): Reference of the contact's subscription; 0 for the default one
+- `messageId` — null | integer (minimum 1): For a split test: messageId of the variant, from get-newsletter-split-test; omit otherwise
+- `accountId` — null | integer (minimum 1): User ID of the account; omit for the account of the access token
+
 ## `prepare-newsletter-dispatch` · DO
 
 **Activate newsletter**
 
-Prepares the dispatch of an email newsletter, immediately or at a given moment, and sends, schedules and publishes nothing itself. It checks permission, published content, audience and sender, estimates the recipients and returns a short-lived single-use confirmation URL bound to that exact summary. Only the logged-in user, by opening the URL in KlickTipp and confirming there, hands the newsletter over -- that reaches real recipients and cannot be taken back. Content that was changed but not published is refused; publish it first with publish-newsletter-email-content. The mode has to be given explicitly; a scheduled moment carries its own UTC offset. If a bound value changes or the URL expires, a new preparation is needed. The dispatch state is read through get-newsletter with deliveryStatus.
+Sends or schedules an email newsletter after the user confirms the recipient estimate in the client's elicitation dialog; no, cancel or no answer sends nothing. Clients without elicitation are refused with the newsletter's schedule page, where the user sends in KlickTipp. Sent mail cannot be recalled. Unpublished edits are refused; publish them with publish-newsletter-email-content first. Requires an explicit mode and UTC offset for scheduled sends; split tests require every variant published. Read deliveryStatus via get-newsletter.
 
 Parameter:
 
@@ -155,7 +169,7 @@ Parameter:
 
 **Cancel a newsletter dispatch**
 
-Takes back the dispatch of an email newsletter, so it becomes a draft again and reaches nobody further. THIS IS THE ANSWER TO "stop it", "cancel the send" AND "undo the schedule" -- it covers both a dispatch that is under way and one that is still waiting for a future moment, which the platform treats as two different things and a caller does not have to. Only while the delivery status says canBeCancelled: once a dispatch is far enough along it cannot be called off, and the refusal says so rather than pretending. What already went out stays out -- this stops what has not been sent yet, it does not recall mail. The newsletter itself, its content and its audience are untouched; only the dispatch is undone, and activating it again is prepare-newsletter-dispatch. Ask the person before calling this: a dispatch someone set up deliberately is not yours to stop on your own reading of a situation.
+Cancels a scheduled or ongoing email newsletter dispatch while canBeCancelled is true, returning it to draft and stopping further sends. Already sent mail cannot be recalled. Content and audience stay; prepare-newsletter-dispatch activates it again. Requires the user’s approval before stopping a deliberate dispatch.
 
 Parameter:
 
@@ -166,7 +180,7 @@ Parameter:
 
 **Search email signatures**
 
-Lists the email signatures of a KlickTipp account that a newsletter can carry, with ID, name, the stored and effective sender address of their sender profile, the readiness of that identity, and the tags that make KlickTipp pick a signature by itself. A signature that cannot send using its own sender profile as it stands -- no content, missing legally required placeholders, or a sender address that may not be sent from -- is left out unless unusable signatures are asked for, in which case it comes with the reasons why. Each entry also says whether its digital business card carries data, which is what decides if add-email-editor-contact-card may select it. The signature text is not part of the list; use get-signature for that. To have KlickTipp pick the signature by tagging instead of naming one, pass signature ID 0 to configure-newsletter-delivery; that is not an entry of this list.
+Searches email signatures by name with sender readiness, selection tags and business-card availability (required by add-email-editor-contact-card). Unusable signatures are excluded unless includeUnusable is true, which also returns blockers. Content is read by get-signature; to select signatures automatically by tags, pass signature ID 0 to configure-newsletter-delivery.
 
 Parameter:
 
@@ -179,7 +193,7 @@ Parameter:
 
 **Get email signature**
 
-Returns one email signature with its name, notes, labels, tag IDs, sender profile, digital business card, content flags, usability and blockers. includeContent adds the HTML, plain and transactional content itself, which is the bulk of the answer. isUsable includes the effective sender identity and domain; an empty stored senderEmail follows the account address.
+Reads one email signature with its name, notes, labels, tag IDs, sender profile, digital business card, content flags, usability and blockers. includeContent adds the HTML, plain and transactional content itself, which is the bulk of the answer. isUsable includes the effective sender identity and domain; an empty stored senderEmail follows the account address.
 
 Parameter:
 
@@ -191,7 +205,7 @@ Parameter:
 
 **Create email signature**
 
-Creates or copies an email signature. Name and tag IDs replace source values; supplied content, sender and business-card fields override copied values, while omitted copied fields stay. HTML needs %Link:Unsubscribe% as the href of a link plus %User:FirstName%, %User:LastName%, %User:Street%, %User:Zip%, %User:City% and %User:Country%; allowed address omissions are exempt. Plain needs the same, but unsubscribe may be text; it is stored only when plain-content editing is allowed, otherwise regenerated from HTML. Transactional HTML needs the address placeholders and no %Link:Unsubscribe%; %Link:SubscriberInfo% is recommended. Tags, addresses and domains must exist; the sender address must have a verified domain, and an omitted sender domain is derived and stored. Returns content flags only; use get-signature with includeContent true. No newsletter changes.
+Creates or copies an email signature. Name and tag IDs replace the source values; other supplied fields override copied ones, and omitted copied fields stay. HTML requires %Link:Unsubscribe% as the href of a link and %User:FirstName%, %User:LastName%, %User:Street%, %User:Zip%, %User:City% and %User:Country% (permitted address omissions excepted); plain text needs these too, though unsubscribe may be text. Transactional HTML requires address fields but no unsubscribe link; %Link:SubscriberInfo% is recommended. Plain text is stored only when plain-content editing is allowed, otherwise regenerated from HTML. Tags and sender address must exist; the sender needs a verified domain, and an omitted sender domain is derived and stored. Returns content flags only; use get-signature with includeContent true. No newsletter changes.
 
 Parameter:
 
@@ -225,21 +239,21 @@ Parameter:
   - `country` — string (maxLength 128)
   - `website` — string (maxLength 250)
 - `notes` — null | string (maxLength 1000): Internal note; on a copy, omit to preserve the source note
-- `metaLabels` — array<string> | null (maxItems 50): Labels; on a copy, omit to preserve the source labels
+- `metaLabels` — null | array<string> (maxItems 50): Labels; on a copy, omit to preserve the source labels
 - `accountId` — null | integer (minimum 1): User ID of the account in which to create the signature; omit for the token account, or pass an accessible subaccount ID
 
 ## `update-signature` · I
 
 **Update email signature**
 
-Changes the name, internal note, labels or digital business card of an email signature. Omitted fields stay unchanged and empty business-card strings clear those fields. Content, tag IDs and sender profile are never changed.
+Updates an email signature's name, internal note, labels or digital business card; omitted fields stay and empty business-card strings clear them. Content, tag IDs and sender profile are never changed.
 
 Parameter:
 
 - `signatureId`* — integer (minimum 1): ID of the signature to update
 - `name` — null | string (minLength 1; maxLength 250): New unique name; omit to keep it, and note that the default signature cannot be renamed
 - `notes` — null | string (maxLength 1000): New internal note; omit to keep it, or pass an empty string to clear it
-- `metaLabels` — array<string> | null (maxItems 50): Replacement labels; omit to keep them, or pass an empty array to clear them
+- `metaLabels` — null | array<string> (maxItems 50): Replacement labels; omit to keep them, or pass an empty array to clear them
 - `vCard` — object: Plain-text digital-business-card fields to change; omitted fields stay unchanged and empty strings clear fields
   - `firstName` — string (maxLength 128)
   - `lastName` — string (maxLength 128)
@@ -259,7 +273,7 @@ Parameter:
 
 **Replace email signature content**
 
-Replaces normal HTML and plain content with no MCP undo. Transactional fields change only when supplied; false plus an empty transactionalHtml disables and clears them. HTML needs %Link:Unsubscribe% as the href of a link plus %User:FirstName%, %User:LastName%, %User:Street%, %User:Zip%, %User:City% and %User:Country%; allowed address omissions are exempt. Plain needs the same, but unsubscribe may be text; it is stored only when plain-content editing is allowed, otherwise regenerated from HTML. Transactional HTML needs the address placeholders and no %Link:Unsubscribe%; %Link:SubscriberInfo% is recommended. Returns content flags only; use get-signature with includeContent true. Name, notes, labels, tags, sender profile and business card stay unchanged.
+Replaces an email signature’s HTML and plain content in full, without MCP undo. HTML requires %Link:Unsubscribe% as the href of a link and %User:FirstName%, %User:LastName%, %User:Street%, %User:Zip%, %User:City% and %User:Country% (permitted address omissions excepted). Plain text needs the same but may show unsubscribe as text; it is stored only when plain-content editing is allowed, otherwise regenerated from HTML. Transactional fields change only when supplied; transactional content needs address fields and no unsubscribe link, %Link:SubscriberInfo% is recommended. useInTransactionalEmails false with an empty transactionalHtml disables and clears it. Returns content flags only; use get-signature with includeContent true. Metadata, tags and sender stay unchanged.
 
 Parameter:
 
@@ -274,12 +288,12 @@ Parameter:
 
 **Configure email signature delivery**
 
-Changes only assigned tag IDs and sender, reply, CC, BCC, recipient and sender-domain fields. Omitted fields stay unchanged. Every ID must already belong to the account; this tool never creates tags, addresses or domains. A changed sender address is checked against its verified domain, and the matching sender domain is derived and stored as the app would store it. Content, metadata and the digital business card stay unchanged.
+Configures an email signature’s assigned tags and sender, reply, CC, BCC, recipient or domain. Omitted fields stay. Tag IDs must exist and be unassigned to another signature; a changed sender needs a verified domain; the sender domain is derived and stored when omitted. Content and business card stay unchanged.
 
 Parameter:
 
 - `signatureId`* — integer (minimum 1): ID of the signature whose delivery configuration is changed
-- `tagIds` — array<integer> | null (maxItems 50): Replacement tag IDs that already exist; ordinary signatures require at least one, and every tag must be unassigned to another signature, while the default signature may use an empty array
+- `tagIds` — null | array<integer> (maxItems 50): Replacement tag IDs that already exist; ordinary signatures require at least one, and every tag must be unassigned to another signature, while the default signature may use an empty array
 - `senderProfile` — object: Sender name and configured account address/domain values; reply options are also used for CC, BCC and recipient, empty strings clear optional fields, omitted fields stay unchanged, and the sender domain is derived when the sender address changes
   - `senderName` — string (maxLength 250)
   - `senderEmail` — string (maxLength 250)
@@ -294,7 +308,7 @@ Parameter:
 
 **Search sender domains**
 
-Lists every sender domain configured by a KlickTipp account, with its verification state, DKIM-only/shared-transport flag, default marker and whether its DNS propagation wait has elapsed. This reads stored state only and performs no DNS lookup. Shared fallback infrastructure is not an account configuration and is therefore not included.
+Lists configured sender domains with verification status, DKIM-only flag, default marker and DNS propagation wait. Reads stored state only; shared fallback infrastructure is excluded.
 
 Parameter:
 
@@ -304,7 +318,7 @@ Parameter:
 
 **Get sender domain**
 
-Returns one configured sender domain with its verification and usability state, the last DNS recheck request and configured sender addresses covered by it, including subdomains. An address in the list is not necessarily confirmed or send-ready. It performs no DNS lookup; use get-sender-domain-dns-setup for the stored per-record setup state.
+Reads a sender domain’s stored verification status, usability, last DNS recheck and covered sender addresses, including subdomains. Listed addresses may still be unconfirmed; no DNS lookup occurs.
 
 Parameter:
 
@@ -315,7 +329,7 @@ Parameter:
 
 **Get sender domain DNS setup**
 
-Returns every DNS record expected for one sender domain and its most recently stored actual state, including expected and actual type, host, value, priority and TTL where available. It performs no live DNS lookup. Expected types and values are alternatives: publish exactly one type/value pair, normally the first. After requesting a fresh asynchronous check, poll until every record checkedAt is at least the trigger result lastDnsCheckRequestedAt; a null checkedAt means no result exists yet.
+Reads expected sender-domain DNS records and their last stored actual state; no live lookup. For an eligible account and DKIM-only domain, domain.mailserverSetupFormUrl opens the manual mailserver request form. Expected type/value pairs are alternatives: publish exactly one per record, normally the first. A check result is fresh only when every checkedAt is at least lastDnsCheckRequestedAt; null means no result yet.
 
 Parameter:
 
@@ -326,7 +340,7 @@ Parameter:
 
 **Create sender domain**
 
-Registers a sender domain in KlickTipp and returns the stored domain in its initial state. The same normalization, syntax, reserved-domain, global uniqueness and product-limit rules as the account form apply. The new domain is not verified and cannot be used for sending until its DNS setup passes. Creating it sends nothing and does not make it the default domain.
+Creates a sender-domain registration. The domain must be valid, not reserved, not registered by any KlickTipp account and within the account limit. It starts unverified and cannot send until DNS verification passes; no email is sent and it does not become the default.
 
 Parameter:
 
@@ -337,9 +351,19 @@ Parameter:
 
 **Trigger sender domain DNS check**
 
-Requests an asynchronous fresh DNS check for one sender domain. It sends no email and does not bypass the existing per-domain cooldown. During a cooldown it returns the stored request and next available moments with cooldownActive true instead of failing or queueing another check.
+Requests an asynchronous sender-domain DNS check without sending email. The per-domain cooldown is enforced; during it, returns cooldownActive and the next available time without queueing another check.
 
 Parameter:
 
 - `domainId`* — integer (minimum 1): ID of the sender domain to recheck
 - `accountId` — null | integer (minimum 1): User ID of the account that owns the domain; omit for the account the access token belongs to, or pass a subaccount the token owner may configure
+
+## `validate-account-sending-readiness` · RI
+
+**Get account sending readiness**
+
+Checks account newsletter-sending readiness from stored DNS state, sender addresses, signatures, opt-in processes and contacts. Blocking findings make readyToSend false; no contacts is informational. Does not start DNS checks or evaluate billing and feature access.
+
+Parameter:
+
+- `accountId` — null | integer (minimum 1): User ID of the account; omit for the account the access token works in

@@ -7,6 +7,50 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
+## 0.28.0 — 2026-10-16
+
+- **`account-setup`, a skill of its own.** It takes a new or half-set-up account from what already
+  exists to the smallest usable setup for the customer's goal: account settings and
+  `validate-account-sending-readiness`, sender domain and address, signature, opt-in process and
+  existing contacts, then a first safe newsletter test — handing each part to `dns-setup`,
+  `opt-in`, `contacts`, `newsletter` or `email`. Whoever installs skills manually adds
+  `account-setup` to their collection.
+- **Contact lists from CSV or Excel.** `contacts` reads the new `references/contact-import.md`
+  before it classifies an export or recommends an import path: consent and DOI evidence,
+  unsubscribes, complaints and bounces kept as suppression, inactive and invalid rows, duplicates,
+  and the limit that `upsert-subscribed-contact` adds one contact, not a list. The reference is in
+  English.
+- **`contacts` covers the contact tools released since 0.27:** `update-contact-email`,
+  `delete-contact`, `get-contact-history`, `add-contact-history-note` and
+  `search-duplicate-contacts`. `tags` and `dashboard` point at the contact history for who set a tag.
+  `search-contacts` filters by `tagId`, a manual or smart tag, and by the `none` channel; the
+  skills no longer name the retired `manualTagId`.
+- **`automation` can delete, preview and look closer.** `delete-automation-draft`,
+  `delete-automation` with `get-campaign-dependencies`, `copy-notification-email` and
+  `copy-notification-sms`, `preview-personalized-email`, `check-sms-readiness`,
+  `get-contact-automation-status` and `move-contact-past-automation-wait` are served and described;
+  only the Facebook-audience and FullContact actions and the spam check of an automation email stay
+  in KlickTipp.
+- **`newsletter` follows the staging plugin.** The dispatch is confirmed in the client's own dialog —
+  a client without one is refused with the schedule page, there is no confirmation URL any more.
+  `preview-personalized-newsletter` checks the published email and its signature per recipient,
+  `validate-account-sending-readiness` is read as proof of *a* sender path, not of this
+  newsletter's, and the `WarningNoSubscriberInfoLinkInUsedSignature` publish warning is explained
+  instead of silently fixed in a shared signature.
+- **`dns-setup` and `email` load less up front.** `dns-setup` moves its provider notes for ALL-INKL,
+  Cloudflare, GoDaddy, Hetzner, IONOS and STRATO into `references/` and reads only the one in use,
+  none for a plain status check; a saved check result newer than the last requested check is
+  reported with its time, its cause left open. `email` moves template selection into
+  `references/template-selection.md`, read only when a catalogue design is chosen, and names
+  `preview-personalized-email` for a message from an automation.
+- **Every `references/contracts.md` is regenerated** from what the server publishes. The tool
+  descriptions were shortened on the server since these files were last written, and several
+  parameters changed; the files now say again, word for word, what the server says.
+- The README no longer claims that a tool missing from the skills does not exist: calendars,
+  countdowns, smart links, tagging pixels, feedback forms, contact audiences, saved email templates,
+  SMS newsletters and SMS follow-ups are served without a skill yet. The Langdock guide lists the
+  `account-setup` and `automation` skill archives and the dispatch dialog.
+
 ## 0.27.2 — 2026-10-09
 
 - **The plugin and its marketplace name Klick-Tipp Limited as author and owner.** Both manifests

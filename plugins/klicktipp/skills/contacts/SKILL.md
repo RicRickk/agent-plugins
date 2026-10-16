@@ -1,6 +1,6 @@
 ---
 name: contacts
-description: KlickTipp-Kontakte finden, lesen, anlegen, an- und abmelden und ihre Feldwerte setzen — auch wenn ein ausstehendes Double-Opt-in ohne Klick des Empfängers bestätigt werden soll (es bleibt ausstehend, Bestätigung wird nicht umgangen). Dazu die Einstellungen des Kontos samt Sperrliste und Vorschau-Tag. Tags vergeben ist `tags`, Felddefinitionen sind `custom-fields`, Opt-in-Prozesse `opt-in`.
+description: KlickTipp-Kontakte finden, lesen, anlegen, an- und abmelden, ihre Feldwerte und E-Mail-Adresse ändern, ihren Verlauf lesen und sie löschen; dazu Kontaktlisten aus CSV oder Excel prüfen und für den Import zuordnen — auch wenn ein ausstehendes Double-Opt-in ohne Klick des Empfängers bestätigt werden soll (es bleibt ausstehend, Bestätigung wird nicht umgangen). Dazu die Einstellungen des Kontos samt Sperrliste und Vorschau-Tag. Tags vergeben ist `tags`, Felddefinitionen sind `custom-fields`, Opt-in-Prozesse `opt-in`.
 ---
 
 # KlickTipp-Kontakte
@@ -13,6 +13,12 @@ sagen, was passieren wird, dann die Zustimmung, dann der Aufruf.**
 Die Werkzeuge im Einzelnen — wofür, was sie nicht tun, woran man sich stößt — stehen in
 [references/tools.md](references/tools.md); ihre veröffentlichten Verträge Wort für Wort in
 [references/contracts.md](references/contracts.md).
+
+Geht es um eine Kontaktliste als CSV oder Excel — einen Importplan, einen Umzug aus einem anderen
+System, einen hochgeladenen Export —, lies vor dem Einordnen der Zeilen oder dem Empfehlen eines
+Importwegs [references/contact-import.md](references/contact-import.md). Dort stehen Einwilligungs-
+und Sperrnachweise, die Zuordnung der Spalten, Dubletten und die Grenzen der Werkzeuge, die je nur
+einen Kontakt anlegen. Für andere Kontaktaufgaben bleibt die Datei ungelesen.
 
 ## Kontakt, Adresse, Referenz
 
@@ -37,6 +43,9 @@ Lese-Suche ausgeschöpft ist. Kann das Werkzeug eine Adresse keiner `referenceId
 verweise auf die App — nicht raten.
 
 ## Welcher Weg zum Kontakt
+
+Die Werkzeuge dieser Tabelle wirken auf einen Kontakt oder einen Kanal; für eine ganze Liste gilt die
+Import-Referenz.
 
 | Ziel | Wirkung |
 | --- | --- |
@@ -69,7 +78,9 @@ Schreibzugriffe. Behaupte keine Bestätigungsmail, die du nicht gesehen hast. Na
 Antwort erst lesen, dann wiederholen.
 
 `update-contact-values` ändert nur die genannten Felder; ein leerer Wert löscht ein Feld.
-`unsubscribe-contact` ändert genau einen Kanal und lässt Tags stehen. Tags vergeben oder abnehmen
+`update-contact-email` ersetzt eine Adresse ohne Bestätigung und behält den Anmeldestand — die
+Hauptadresse oder die in `currentEmail` genannte; das kann Automationen starten und zählt gegen das
+Tagesimportlimit. `unsubscribe-contact` ändert genau einen Kanal und lässt Tags stehen. Tags vergeben oder abnehmen
 ist Skill `tags`, auch wenn sich dabei der Kontakt ändert.
 
 Kontaktdaten sind persönlich: gib nur weiter, was die Aufgabe braucht.
@@ -84,13 +95,18 @@ Kontaktdaten sind persönlich: gib nur weiter, was die Aufgabe braucht.
 
 Setz ihn erst, nachdem du gesagt hast, was der Aufruf bewirkt („meldet die Adresse über die Liste X
 an und schickt ihr eine Bestätigungsmail"), und die Person zugestimmt hat. Vorsorglich mitgeschickt
-ist er eine Zustimmung, die niemand gegeben hat. Ohne `approval`, aber genauso vorher angekündigt:
-`update-contact-values` überschreibt ohne Undo, `upsert-subscribed-contact` meldet ohne Bestätigung an.
+ist er eine Zustimmung, die niemand gegeben hat. Ohne `approval`, aber genauso vorher angekündigt — keiner
+dieser Aufrufe lässt sich zurücknehmen: `update-contact-values` überschreibt, `upsert-subscribed-contact`
+meldet ohne Bestätigung an, `update-contact-email` ersetzt die Adresse, `delete-contact` entfernt den
+Kontakt mit beiden Kanälen, jedem Abo, jedem Tag, jedem Feldwert und seinem Verlauf und nimmt ihn aus
+jeder Kampagne. Lösche nur einen Kontakt, den die Person ausdrücklich benannt hat, und nenne ihn ihr
+vorher zurück; wer das Abo beenden, den Kontakt aber behalten will, braucht `unsubscribe-contact`.
 
 ## Suchen und Zählen
 
 `search-contacts` nimmt ein E-Mail-Fragment oder eine Mobilnummer mit Ländervorwahl, filtert nach
-Status (`pending`, `optin`, `subscribed`, `unsubscribed`), Kanal oder **einem** manuellen Tag und
+Status (`pending`, `optin`, `subscribed`, `unsubscribed`), Kanal (`email`, `sms` oder `none` für
+Kontakte ohne beides) oder **einem** Tag (`tagId`, manuell oder Smart-Tag) und
 liefert Seiten à höchstens 100 **ohne Gesamtzahl**. „Wie viele Kontakte haben wir" ist hier nicht zu
 beantworten — dafür `get-newsletter` mit `audienceReach` (Skill `newsletter`) oder Skill `dashboard`;
 die Träger eines Tags zählt `get-tag`. Der `cursor` geht unverändert zurück, mit denselben Filtern.
@@ -106,6 +122,23 @@ die Träger eines Tags zählt `get-tag`. Der `cursor` geht unverändert zurück,
 Rechne nichts um und schätze nichts. `update-contact-values` nimmt diese Formen und ISO 8601
 (`2026-09-16`, `2026-09-16T14:30:00+02:00`); „nächsten Montag" wird abgewiesen statt umgedeutet, und
 die Abweisung nennt die Form, die gegangen wäre.
+
+## Verlauf und Dubletten
+
+- `get-contact-history` — neueste Einträge zuerst, filterbar nach `subscription`, `tagging`,
+  `miscellaneous`, `other`: Anmeldungen, Opt-in-Mails, erhaltene und abgenommene Tags, Bounces,
+  Notizen. Das ist der Beleg für „hat dieser Kontakt bestätigt?" und „wer hat diesen Tag gesetzt?" —
+  der Status allein ist es nicht.
+- `add-contact-history-note` — eine interne Notiz, für den Kontakt unsichtbar, startet nichts und
+  lässt sich **nie bearbeiten oder entfernen**. Zeig den Text, bevor du ihn schreibst.
+- `search-duplicate-contacts` — liest nur; ein Paar kann von beiden Seiten erscheinen. Zusammenführen
+  oder Ablehnen geschieht in der App, und Zusammenführen löscht die Dublette endgültig.
+
+Ein Werkzeug zum Zusammenführen gibt es über diese Verbindung nicht. Ein abgeschlossener
+Dubletten-Eintrag belegt eine Zusammenführung, nicht die vollständige Adressliste des verbliebenen
+Kontakts, und mehrere digitale IDs an einem Kontakt beweisen für sich keine Zusammenführung. Die
+Oberfläche kann beim Speichern der Details die Zuordnung von Hauptadresse und Referenz ändern — vor
+einem referenzbezogenen Schreibzugriff also den aktuellen Stand neu lesen.
 
 ## Konto-Einstellungen
 

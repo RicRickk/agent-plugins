@@ -52,10 +52,10 @@ Use customer language. Do not invent a personal sign-off.
 | 3 | Subject, pre-header, audience | `update-newsletter-draft` |
 | 3a | *split test only:* variants | `add-` / `update-` / `remove-newsletter-split-test-variant` → skill `splittest` |
 | 4 | Sender, reply-to, signature | `configure-newsletter-delivery` |
-| 4a | Check and publish | `validate-email-editor-content`, `preview-email-editor`, `publish-newsletter-email-content` |
+| 4a | Check and publish | `validate-email-editor-content`, `preview-email-editor`, `publish-newsletter-email-content`, `preview-personalized-newsletter` |
 | 5 | Test send | `send-newsletter-test` |
 | 6 | Prepare activation | `prepare-newsletter-dispatch` |
-| 7 | **A human confirms in KlickTipp** | — |
+| 7 | **A human confirms in the client dialog or KlickTipp app** | — |
 
 2–4 are free in order; 4a comes before 5 and 6, because both carry the published content; 1/6/7
 are fixed. Way back after 7: `cancel-newsletter-dispatch`.
@@ -133,6 +133,8 @@ guess).
 - **Show the saved values, not inferred ones.** Read `deliveryConfiguration` and show sender
   domain, address, name and reply-to as saved, with the usable alternatives. Do not derive the
   effective sender from the account address, a domain's `isDefault` flag or a signature alone.
+  `validate-account-sending-readiness` proves only that *some* sender path exists in the account,
+  not that this newsletter has one.
 
 **The signature mode.** `signatureId: 0` lets KlickTipp pick by tags in account priority, with the
 tagless default as the fallback when none match; any other ID fixes one signature. Say which mode is
@@ -178,7 +180,20 @@ override instead of inventing a value.
 - For a draft or preview request, stop here.
 - **Publish** for a test, a dispatch or when asked: `publish-newsletter-email-content` with the latest
   `contentRevision`; report the returned status and revision. After later edits, republish before
-  another test or dispatch; an ordinary draft edit does not itself require publication.
+  another test or dispatch; an ordinary draft edit does not itself require publication. Report
+  publication warnings separately from blocking errors. For
+  `WarningNoSubscriberInfoLinkInUsedSignature`, read the selected signature's HTML and plain text
+  with `get-signature` + `includeContent: true`: the warning concerns the signature, not the email
+  body or a failed publication. Explain whether `%Link:SubscriberInfo%` is actually missing and
+  that this warning alone does not block publication, a test or dispatch. Do not silently edit a shared default signature; its
+  replacement affects other emails. If the user wants the warning resolved, prepare a
+  content-preserving change to that signature (or an isolated replacement), show its wider effect,
+  then read back and recheck the result after the authorized change.
+- **Per recipient**: `preview-personalized-newsletter` for a representative contact shows the
+  published email with placeholders filled and the signature the dispatch picks for that contact.
+  This is the check for the footer, not the validator. Display the returned HTML unchanged when the
+  host has no native preview. Do not reconstruct it from a summary or silently remove styling,
+  tracking or compatibility markup.
 
 ## 5 · Test send
 
@@ -208,16 +223,21 @@ subject and pre-header, audience with its reach, sender and reply-to, signature 
 header line, published content revision, preview result, call-to-action URL, timing. Flag
 placeholder or test URLs. Get explicit approval for exactly these values.
 
-`prepare-newsletter-dispatch` **does not send.** It checks, binds the published content, estimates the
-recipient count and returns the confirmation a human clicks in KlickTipp. It does not itself activate
-or schedule the newsletter. The URL
-is short-lived and single-use; a changed value or an expired URL needs a new preparation.
+`prepare-newsletter-dispatch` checks the published content and recipient estimate, then requests
+confirmation through the client's native dialog. If the client cannot show that dialog, the tool
+refuses, sends nothing and returns `scheduleUrl`, the newsletter's schedule page where the human
+continues in KlickTipp. Do not
+describe a short-lived confirmation URL as the normal path. A refusal leaves the newsletter a
+draft; a confirmed dialog may send or schedule it. Read the actual outcome and `deliveryStatus`
+before claiming either result.
 
 Arguments: `newsletterId`, `mode` (`immediate` | `scheduled`), with `scheduled` also `scheduledAt`.
 
-Pass on `estimatedRecipientsMin`/`-Max`, `message` and `scheduleUrl` — this is the point where a
-person decides, and they need the number, not your summary. Never say "was sent" afterwards, say
-"prepared". Scheduled or sent is reported only once `get-newsletter` + `deliveryStatus` shows it.
+Show the estimate, relevant warning and exact dispatch plan returned by the live tool. Use the
+native confirmation dialog when the client supports it; otherwise give the product-provided app
+link and explain the remaining human step. The response shape can differ between confirmation,
+refusal and client fallback, so do not assume specific estimate fields exist. Scheduled or sent is
+reported only once `get-newsletter` + `deliveryStatus` confirms it.
 
 ## Reading
 
