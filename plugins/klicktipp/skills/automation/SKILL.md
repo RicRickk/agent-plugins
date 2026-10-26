@@ -185,7 +185,7 @@ Automations-E-Mail. Das geht in KlickTipp selbst; sag es so, statt einen Umweg z
 
 E-Mail-**Inhalt** (HTML, Blöcke, Gestaltung) → `email`. Einzelne Aussendungen → `newsletter`.
 Kontakte → `contacts`, Tags → `tags`, Felder als solche → `custom-fields`. Was eine Automation
-erreicht hat → `dashboard`.
+erreicht hat → `dashboard`. Webinaris-Auto-Webinare → `webinaris-webinar`.
 
 ## Bevor du schreibst
 

@@ -7,6 +7,19 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
+## 0.29.0 — 2026-10-26
+
+- **`webinaris-webinar`, a skill of its own.** It sets up one KlickTipp campaign per Webinaris
+  auto-webinar — confirmation, reminders, a live mail for whoever is not in the room, thank-you or
+  missed-you with the recording, rebooking — by importing the Webinaris campaign template, adapting
+  placeholders, reminder times and the live check to the account, and guiding the user through the
+  Webinaris settings that have to match: the tag minutes, room closing, no start delay, and
+  interface calls for the latest registration only. The campaign stays paused until the user
+  activates it; a smoke test with plus-addresses follows. Webinaris has no MCP server, so its
+  settings are either guided screen by screen or, with the browser extension, applied after one
+  confirmed list. The skill is in English. `automation` hands Webinaris auto-webinars to it; whoever
+  installs skills manually adds `webinaris-webinar` to their collection.
+
 ## 0.28.0 — 2026-10-16
 
 - **`account-setup`, a skill of its own.** It takes a new or half-set-up account from what already

@@ -288,13 +288,18 @@ subscription or per contact, the placeholder that renders a field in content.
 together with their confirmation email, its redirect pages, and what an
 existing consent covers.
 
+`skills/webinaris-webinar` — sets up one campaign per Webinaris auto-webinar:
+imports the Webinaris campaign template, adapts placeholders, reminder times and
+the live check to the account, guides the user through the matching Webinaris
+settings, and tests the result after activation.
+
 `skills/email-template-generator` — writes the plain business emails that are
 not newsletters: cold outreach, support replies, follow-ups, declines. No HTML,
 no layout.
 
 The tool-focused skills carry `references/` folders with the tools they use,
 their answer shapes and their pitfalls. `dns-setup` covers provider guidance
-directly. `account-setup`, `email`, `newsletter`, `splittest`, `dashboard` and `dns-setup` are in English; the
+directly. `account-setup`, `email`, `newsletter`, `splittest`, `dashboard`, `dns-setup` and `webinaris-webinar` are in English; the
 others are in German, like the editor itself.
 
 **The server serves more than the skills describe.** Calendars, countdowns,
