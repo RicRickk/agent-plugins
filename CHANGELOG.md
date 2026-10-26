@@ -7,6 +7,12 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
+## 0.29.1 — 2026-10-26
+
+- **One documentation address.** The plugin's homepage in both manifests and the documentation
+  links in the READMEs point at [developers.klicktipp.com/mcp-tools](https://developers.klicktipp.com/mcp-tools);
+  the links to the separate guide pages for the MCP server and the plugins are gone.
+
 ## 0.29.0 — 2026-10-26
 
 - **`webinaris-webinar`, a skill of its own.** It sets up one KlickTipp campaign per Webinaris

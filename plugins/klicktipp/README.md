@@ -317,7 +317,6 @@ stay readable, movable and removable.
 ## Support
 
 support@klick-tipp.com ·
-[MCP server](https://developers.klicktipp.com/guides/mcp-server) ·
-[Plugins](https://developers.klicktipp.com/guides/mcp-server-plugins) ·
+[Documentation](https://developers.klicktipp.com/mcp-tools) ·
 [Privacy policy](https://www.klick-tipp.com/datenschutz) ·
 [Terms](https://www.klick-tipp.com/agb)

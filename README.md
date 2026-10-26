@@ -20,7 +20,7 @@ carries a prompt that has the host set both up itself —
 [OpenClaw](plugins/klicktipp/SETUP_OPENCLAW.md) ·
 [Langdock](plugins/klicktipp/SETUP_LANGDOCK.md).
 
-**Documentation** — [the MCP server](https://developers.klicktipp.com/guides/mcp-server) · [the plugins](https://developers.klicktipp.com/guides/mcp-server-plugins). The tools and skills each version ships are listed below and in [the plugin's README](plugins/klicktipp/README.md), because that list moves with the releases.
+**Documentation** — [developers.klicktipp.com/mcp-tools](https://developers.klicktipp.com/mcp-tools). The tools and skills each version ships are listed below and in [the plugin's README](plugins/klicktipp/README.md), because that list moves with the releases.
 
 | | |
 |---|---|
