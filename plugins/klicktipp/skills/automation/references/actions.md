@@ -34,10 +34,7 @@ settings it is given; omitted ones stay, and lists that are passed **replace** t
 | `gender-detection` | `detect gender` | `customFieldID` |
 | `fullcontact` | `fullcontact` | — |
 | `unsubscribe` | `unsubscribe-contact` | — |
-
-Website enrichment (`website_enrichment`) has **no** tool. An automation built in the editor can
-carry it and a read reports it; it cannot be created or changed, and
-`get-automation-editor-capabilities` therefore does not offer it in the first place.
+| `website-enrichment` | `website_enrichment` | `source`, `field_ids` — needs the add-on, see [enrichment.md](enrichment.md) |
 
 ## `delayType` — the values of a wait
 
@@ -90,7 +87,8 @@ one tool per kind for copying, SMS text and test sends — `copy-automation-emai
 `send-notification-sms-test` — plus `check-sms-readiness`, `preview-personalized-email`,
 `send-email-for-gmail-placement-preview`.
 
-**Operation:** `estimate-automation-audience`, `prepare-automation-activation`, `stop-automation`,
+**Operation:** `estimate-automation-audience`, `estimate-automation-website-enrichment-cost`,
+`get-account-credit-balance`, `prepare-automation-activation`, `stop-automation`,
 `get-automation-waiting-contact-counts`, `get-automation-statistics`, `get-automation-email-statistics`,
 `move-automation-contacts`.
 

@@ -164,11 +164,12 @@ current revision; activating is confirmed by a person in KlickTipp
 |---|---|
 | `search-automations` · `get-automation` · `validate-automation` | find an automation, read its graph with action IDs and revision, and check it |
 | `create-automation-draft` · `update-automation-draft` | create an inactive draft with its start action, optionally as a copy, and change its name, notes and labels |
-| `add-automation-<kind>-action` · `update-automation-<kind>-action` | one pair per action type: email, SMS, notifications, wait, decision, goal, tag, untag, set field, go-to, exit, restart, start and stop another automation, split test, outbound, name and gender detection, unsubscribe; the start action is configured with `update-automation-start-action` |
+| `add-automation-<kind>-action` · `update-automation-<kind>-action` | one pair per action type: email, SMS, notifications, wait, decision, goal, tag, untag, set field, go-to, exit, restart, start and stop another automation, split test, outbound, name and gender detection, unsubscribe, website enrichment (SmartEnrichment add-on); the start action is configured with `update-automation-start-action` |
 | `move-automation-action` · `copy-automation-action` · `delete-automation-action` | rearrange the graph; a copied action shares its message, a deleted one leaves its email in place |
 | `delete-automation-draft` · `delete-automation` · `get-campaign-dependencies` | delete an inactive draft, or an automation that is neither active nor scheduled, and see what still uses it — no undo |
 | `get-automation-editor-capabilities` · `search-automation-editor-references` | which settings and condition operators an action takes, and the IDs of the tags, fields, messages and automations it names |
 | `estimate-automation-audience` | estimate the initial audience of an automation, in batches |
+| `estimate-automation-website-enrichment-cost` · `get-account-credit-balance` | the enrichment price per contact of a saved automation and the account's credit balance — reads only, books nothing |
 | `prepare-automation-activation` | validate and return the activation dialog — it activates nothing |
 | `stop-automation` · `move-automation-contacts` | stop a running automation, or move waiting contacts to another action — both reach contacts already in it |
 | `get-contact-automation-status` · `move-contact-past-automation-wait` | where a contact stands in the automations, and ending one contact's wait early — previews first |

@@ -144,6 +144,12 @@ Guess neither IDs nor operators.
 **Opens and clicks are tags.** "Has opened email 1" runs through the message's smart tag from
 `get-automation-email` / `get-notification-email`. That ID goes into `field` — not the email ID.
 
+## Enriching contacts with AI
+
+"Fill in company, industry, LinkedIn profile, communication style" is the `website_enrichment`
+action. It costs per contact. Follow [references/enrichment.md](references/enrichment.md):
+availability and price first, a check for empty results, a pilot contact whose fields you read back.
+
 ## Traps
 
 | | |

@@ -7,6 +7,20 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
+## 0.34.0 — 2026-11-19
+
+- **The `automation` skill builds SmartEnrichment.** The `website_enrichment` action had no tool
+  and the skill said so; the server now releases it together with the cost check (MCAEM-4,
+  MCAEM-11), so the skill drops that note and walks a controlled setup instead.
+  - New reference `references/enrichment.md`: add-on and price first, the source chosen from what
+    the user has (business email → website, LinkedIn or YouTube URL field), AI field descriptions
+    that leave a field empty instead of writing a placeholder, the overwrite mode, a decision that
+    tags contacts whose enrichment came back empty, and one pilot contact whose fields are read back
+    per field before the start condition is widened with the total price named.
+  - `references/actions.md` lists the action with `source` and `field_ids`, and the operation tools
+    `estimate-automation-website-enrichment-cost` and `get-account-credit-balance`.
+  - The plugin README lists the action and both cost tools.
+
 ## 0.33.3 — 2026-11-13
 
 - **`assets/logo.png` is now the official KlickTipp favicon.** The icon was a white cursor and
