@@ -7,6 +7,28 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
+## 0.35.0 — 2026-11-19
+
+- **A newsletter from an existing source, with a subject split test.** Takes in the staging plugin's
+  MR !8 (MCAEM-238), so an article, web page, pasted text or file becomes a newsletter without the
+  detour over hand-written HTML.
+  - The `email` skill keeps copy from a source to that source's facts, numbers and quotes, and says so
+    when only a summary was available. A whole body goes in as one editor document; the row-plus-add
+    path is for a single added block. **Do not write HTML to import it** — neither the source's nor
+    your own: the import splits such layouts into extra columns and empty spacers.
+  - The preview checklist also names demo logos and images left from a template, and footer or
+    unsubscribe text that disappears against its row.
+  - `email/references/authoring.md`: images from a source page are uploaded to the account's own
+    library, only with the user's consent and never through a third-party service; an SVG-only logo
+    is asked for as a raster file or set as text.
+  - The `newsletter` skill proposes the source as the call-to-action target, asks for two subject
+    lines whether to test them or pick one — a split test is decided at creation, so `splittest`
+    loads before `create-newsletter-draft` — and runs `validate-newsletter-readiness` per variant
+    plus a per-recipient `preview-personalized-newsletter` before a test send; the audience comes
+    from `get-newsletter`.
+  - `newsletter/references/tools.md` and the `splittest` skill name what the readiness check leaves
+    unchecked and that it selects a variant by `messageId` like the test send does.
+
 ## 0.34.0 — 2026-11-19
 
 - **The `automation` skill builds SmartEnrichment.** The `website_enrichment` action had no tool

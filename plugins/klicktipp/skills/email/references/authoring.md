@@ -97,6 +97,9 @@ just built is already a document — the block tools get there without the detou
    **A stock URL must not go into the newsletter.** Pass `sourceUrl` and `fileName` of the chosen
    photo to `upload-email-editor-image-from-url` and use the URL that comes back. A foreign URL makes every
    mailbox contact a third party and breaks on the day the photo disappears there.
+   Images from a source page follow the same rule and are uploaded only with the user's consent.
+   Never route them through third-party services. An SVG-only logo cannot be uploaded: ask for a
+   raster file or set the name as text.
 
    Two things that will otherwise embarrass you: the stock search **never comes back empty** — for a
    query without matches it returns unrelated photos. Look at what came back and say what it shows,
@@ -108,5 +111,5 @@ just built is already a document — the block tools get there without the detou
    skill: a clean check covers no copy, demo text, personalisation fallbacks or layout.
 
 **Where you do ask**, because it is not styling: before an import replaces existing content, before a
-block is removed, and when choosing a stock photo — its licence restricts recognisable people, and
+block is removed, when choosing a stock photo and before using images from a source — its licence restricts recognisable people, and
 that is the user's decision. You decide styling, they decide losses and rights.

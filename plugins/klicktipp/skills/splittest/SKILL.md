@@ -136,7 +136,7 @@ state the supported path; use the `appUrl` where the available tools do not supp
 Do not claim that every split-test action is limited to the interface.
 
 The observed `send-newsletter-test` contract describes `messageId` to select a split-test variant by
-its `emailId`. A test still needs that variant's
+its `emailId`; `validate-newsletter-readiness` and `preview-personalized-newsletter` select the variant the same way. A test still needs that variant's
 published content, an explicitly named recipient and disclosure of the real-mail/contact-tagging
 effect. Never call it during a read-only plan.
 Check the live contract before any action, because a skill cannot guarantee what a deployment offers.

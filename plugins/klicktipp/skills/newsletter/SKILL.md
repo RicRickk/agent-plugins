@@ -41,7 +41,7 @@ Match the user's stage.
   with the account's actual values where readable — audience, sender, reply-to, signature mode,
   tracking, header line, UTM campaign. Ask for one confirmation or corrections, and do not ask again
   for confirmed choices, including ones given in an earlier turn. Ask separately only about blocking decisions (ambiguous audience, missing
-  call to action). Require copy approval before a draft only if the user asked to review it first.
+  call to action). With a source, propose it as the call-to-action target. Require copy approval before a draft only if the user asked to review it first.
 - **Choosing a design**: `email` owns the source choice, preview and application. Pass the message
   length, must-keep elements, confirmed brand context and any existing design decision. Prefer a layout whose sections suit the copy, so applying it does not require a long
   sequence of removals. Show the actual template previews before the user chooses; a name or
@@ -81,6 +81,8 @@ After the company-context handback or confirmed task brief, steps 2 and 3 are fr
   the content.
 - **A split test is decided at creation and never after** (`splitTest` object). Afterwards the
   newsletter has no single email and `update-newsletter-draft` rejects a subject. → skill `splittest`.
+  When the user wants two subject lines, ask whether to test them (split test, decided now) or to
+  pick one; for a test load `splittest` before `create-newsletter-draft`.
 
 ## 3 · Subject, pre-header, audience
 
@@ -185,7 +187,8 @@ override instead of inventing a value.
   its own words, with the block where there is one. A part in `unavailable` did not run — say so
   instead of reporting it clean. `ready: true` still covers nothing in `notChecked`: the preview
   review above is not replaced by it. Keep `skipExternalCheck` as in the previous check unless the
-  user asks.
+  user asks. Split test: once per variant, `messageId` = its `emailId`. The audience is
+  not part of it — read it with `get-newsletter` (`audience`/`audienceReach`).
 - **Publish** for a test, a dispatch or when asked: `publish-newsletter-email-content` with the latest
   `contentRevision`; report the returned status and revision. After later edits, republish before
   another test or dispatch; an ordinary draft edit does not itself require publication. Report
@@ -195,7 +198,9 @@ override instead of inventing a value.
   body or a failed publication. Check the placeholder against `signatures` and the live tool schema, then explain whether `%Link:SubscriberInfo%` is actually missing and
   that this warning alone does not block publication, a test or dispatch. Do not silently edit a shared default signature; its
   replacement affects other emails. If the user wants the warning resolved, hand the change to `signatures`, then recheck the newsletter after its verified readback.
-- **Per recipient**: `preview-personalized-newsletter` for a representative contact shows the
+- **Per recipient**, before a test send: `preview-personalized-newsletter` (split test: per variant via
+  `messageId`; AI emails consume credits) for an existing contact whose used fields are filled —
+  name it, and say so if none fits. It shows the
   published email with placeholders filled and the signature the dispatch picks for that contact.
   This is the check for the footer, not the validator. Display the returned HTML unchanged when the
   host has no native preview. Do not reconstruct it from a summary or silently remove styling,
@@ -219,7 +224,7 @@ and claim inbox delivery only if it is confirmed. A test request never leads to 
   blacklist or an unfamiliar domain does not prove inbox delivery; historical bounces do not by
   themselves prove the current delivery state.
 
-For a requested test: content → `publish-newsletter-email-content` → test. Continue to step 6 only
+For a requested test: content → `publish-newsletter-email-content` → readiness check and per-recipient preview → test. Continue to step 6 only
 for a separately requested dispatch or schedule.
 
 ## 6 · Activation
