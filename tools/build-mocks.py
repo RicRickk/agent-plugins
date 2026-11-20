@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
-"""Generate each case's MCP mock from a shared world and a per-group tool list.
+"""Generate each case's MCP mock from a shared world and the full tool set.
 
-A mocked tool is visible to Claude during the run, and every mocked tool's schema goes
-into the run's context. Serving all 181 tools the skills touch would cost ~110k tokens of
-tool definitions per run, so each skill group mocks only its own tools. The fictional
-account is shared, so the groups agree about ids, tags and counts.
+Every case mocks every tool the suite knows: the union of mocks/klicktipp/_tools.json
+(when tools/refresh-tools.py has written it) and every <group>/tools.txt. A mocked tool
+is visible to Claude during the run and its schema goes into the run's context, so this
+costs roughly 110k tokens of tool definitions per run — the groups used to mock only
+their own tools, 1 to 61 of them, which was cheaper but let a skill reach for a tool the
+mock did not serve. The fictional account is shared, so the groups agree about ids, tags
+and counts.
+
+<group>/tools.txt is no longer what a group serves. It stays as the record of which
+tools that skill names, and it feeds the union above.
 
 Layout it reads, below plugins/klicktipp/evals/:
     mocks/world.md              the fictional account, shared by every group
-    mocks/klicktipp/_tools.json the tools/list the groups use, when tools/refresh-tools.py
-                                has written it (it is not committed); the tool names in
-                                tools.txt are checked against it only when it is there
-    <group>/tools.txt           one tool name per line
+    mocks/klicktipp/_tools.json the production tools/list, when tools/refresh-tools.py
+                                has written it (it is not committed)
+    <group>/tools.txt           one tool name per line: the tools that skill names
     <group>/abort_when.md       the conditions that end a run, one per '- ' line
 
 and writes <group>/<case>/mocks/klicktipp/_server.md for every case in the group.
@@ -36,13 +41,25 @@ known = (
 )
 world = (root / "mocks" / "world.md").read_text().strip()
 
+# Every case serves the same full set: the catalogue plus every tool a group names.
+# A name only a group names is kept — the published catalogue the refresh script reads
+# lags the server, and dropping such a tool would leave the skill that calls it unmocked.
+named = {
+    t.strip(): f
+    for f in sorted(root.glob("*/tools.txt"))
+    for t in f.read_text().split()
+    if t.strip()
+}
+all_tools = sorted(set(named) | (known or set()))
+if known is not None:
+    for t in sorted(set(named) - known):
+        print(f"{named[t].relative_to(root)}: {t} is not in the catalogue, mocked anyway",
+              file=sys.stderr)
+
 stale, written, groups = [], 0, 0
 for tools_file in sorted(root.glob("*/tools.txt")):
     group = tools_file.parent
-    tools = [t.strip() for t in tools_file.read_text().split() if t.strip()]
-    unknown = [t for t in tools if known is not None and t not in known]
-    if unknown:
-        sys.exit(f"{tools_file}: not production tools: {', '.join(unknown)}")
+    tools = all_tools
     abort = (group / "abort_when.md").read_text().strip()
     header = "---\ntype: agent\ntools:\n" + "".join(f"  - {t}\n" for t in tools)
     header += "abort_when: |\n" + "".join(f"  {l}\n" for l in abort.splitlines()) + "---\n\n"

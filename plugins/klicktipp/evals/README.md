@@ -48,9 +48,17 @@ fictional account: "Musterbäckerei Schmitt", 8 420 contacts, four tags, three c
 two newsletters, two automations, two opt-in processes, a sending domain missing its
 DMARC record. The groups share that world, so their ids and counts agree.
 
-A mocked tool is visible to Claude during the run and its schema goes into the run's
-context, so serving all 181 tools the skills touch would cost roughly 110k tokens of tool
-definitions per run. Each group therefore mocks only its own tools, 1 to 61 of them.
+Every case mocks the **full set of 185 tools** — the union of the saved catalogue and
+every `<group>/tools.txt`. A mocked tool is visible to Claude during the run and its
+schema goes into the run's context, so this costs roughly 110k tokens of tool definitions
+per run. Until 0.35.0 each group served only its own tools, 1 to 61 of them: cheaper, but
+a skill reaching for a tool its group did not list hit nothing. Two consequences to keep
+in mind — a full run costs noticeably more than the $3.32 recorded below, and scores from
+before the change are not directly comparable, because 185 schemata in context are a
+different working environment than 9.
+
+`<group>/tools.txt` no longer decides what a group serves. It stays as the record of
+which tools that skill names, and it feeds the union.
 
 Three files drive it, and `tools/build-mocks.py` writes the per-case mocks from them:
 
@@ -84,9 +92,13 @@ python3 tools/refresh-tools.py --no-output-schema   # half that, response shapes
 It reads the published tool catalogue, because `https://mcp.klicktipp.com/mcp` answers
 `tools/list` only behind OAuth; it writes only the tools the groups mock — the union of
 every `<group>/tools.txt` — and exits 1 when a `tools.txt` names a tool the catalogue no
-longer has. `build-mocks.py` checks the names against it when it is there and says so
-when it is not. `claude plugin eval` caps a single mock file at 1 MiB and scores every
-case 0 when it is exceeded, which is what the cap in the script guards.
+longer has. `build-mocks.py` no longer treats that as fatal: the published catalogue lags
+the server, so a tool only a `tools.txt` names is mocked anyway and the script prints a
+line saying so. Two are in that state today, `send-newsletter` and
+`update-automation-email`; both exist on the server, neither is in the catalogue, and
+both therefore run on the permissive placeholder schema. `claude plugin eval` caps a
+single mock file at 1 MiB and scores every case 0 when it is exceeded — at 185 tool names
+a `_server.md` is about 13 KiB, so the cap is not close.
 
 The file stays out of the repository because it mirrors the server's tool list word for
 word. In 133 of its parameter descriptions the server explains which account a call
@@ -161,7 +173,7 @@ regex wherever a tool call or a literal can carry it.
 
 ## What is not covered
 
-`email` mocks 61 tools but the cases only read and publish; nothing exercises the
+`email` now has every tool mocked but the cases only read and publish; nothing exercises the
 `add-email-editor-*` block tools, so a content-building regression would not show up.
 `automation` covers reading, the activation boundary and the editor claim, not building a
 flow action by action. There are no cases for SMS, landing pages, split-test statistics,
