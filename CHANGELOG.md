@@ -7,6 +7,23 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
+## 0.36.1 — 2026-11-20
+
+- **The README says how to install and use the plugin, in both CLIs.** It carried the three
+  Claude Code commands and nothing else; Codex was named in the table but never explained,
+  and installing a skill on its own was documented only inside the Langdock guide.
+  - `Install and use` gives Claude Code and Codex a block each —
+    `codex plugin marketplace add`, `codex plugin add klicktipp@klicktipp`, then
+    `codex mcp login` with the name `codex mcp list` prints. Both command sets were checked
+    against the installed CLIs rather than written from memory.
+  - `Using it` says there is nothing to invoke and shows three prompts, with the two
+    boundaries that always hold: no dispatch and no activation without a person confirming.
+  - `Installing the skills` covers the three ways — with the plugin, as the per-skill zip a
+    release attaches under a `releases/latest/download/` link, or copied by hand into
+    `~/.claude/skills/`. A skill installed by hand carries no MCP server, and the section
+    says so.
+- The plugin archive is unchanged from 0.36.0: the root README is not part of it.
+
 ## 0.36.0 — 2026-11-20
 
 - **A Cursor manifest, so the plugin installs in a third host.** `.cursor-plugin/plugin.json`

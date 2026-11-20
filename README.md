@@ -31,6 +31,103 @@ carries a prompt that has the host set both up itself —
 | Agents | Claude Code and the Claude directory (`.claude-plugin/`), Codex and ChatGPT (`.codex-plugin/`), Cursor (`.cursor-plugin/`) |
 | Requires | a KlickTipp account |
 
+## Install and use
+
+### Claude Code
+
+```bash
+claude plugin marketplace add klicktipp/agent-plugins
+```
+
+```bash
+claude plugin install klicktipp@klicktipp
+```
+
+```bash
+claude mcp login plugin:klicktipp:klicktipp
+```
+
+The login opens a browser once per machine. Until it has happened the server answers
+`401` and the tool list may come up empty — that is the run-up to the login, not a
+defect. [SETUP.md](plugins/klicktipp/SETUP.md) walks an agent through it.
+
+`claude plugin details klicktipp` lists what the installed version ships.
+
+### Codex
+
+The same marketplace, the same plugin, through the Codex CLI:
+
+```bash
+codex plugin marketplace add klicktipp/agent-plugins
+```
+
+```bash
+codex plugin add klicktipp@klicktipp
+```
+
+Then sign in to the plugin's MCP server. `codex mcp list` prints the name Codex gave
+it, and that name is what the login takes:
+
+```bash
+codex mcp login <name>
+```
+
+Codex reads [`.codex-plugin/plugin.json`](plugins/klicktipp/.codex-plugin/plugin.json)
+and the marketplace entry in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json),
+and gets the same server and the same skills as Claude Code.
+
+### Using it
+
+There is nothing to invoke. Ask for what you want in your own words and the matching
+skill loads itself:
+
+> Show me my opt-in processes and which of them use double opt-in.
+
+> Create a newsletter draft for my webinar list, write it, and send a test to my own
+> address.
+
+> Change the headline and the button text of my last newsletter, and leave the rest as
+> it is.
+
+Two boundaries hold whatever you ask for: **a newsletter is never dispatched and an
+automation never activated without a person confirming it**, and the dispatch itself is
+confirmed in KlickTipp.
+
+## Installing the skills
+
+With the plugin, nothing to do — all seventeen skills come with it and load themselves.
+Install them on their own only for a host that takes skills as uploads, or to try one
+without the plugin.
+
+**As an upload.** Every release attaches one zip per skill, `SKILL.md` at its top. The
+links are unversioned, so they always point at the newest release:
+
+```
+https://github.com/klicktipp/agent-plugins/releases/latest/download/klicktipp-skill-<name>.zip
+```
+
+`<name>` is the skill's directory name — `newsletter`, `email`, `contacts` and so on;
+`ls plugins/klicktipp/skills` is the full list. [SETUP_LANGDOCK.md](SETUP_LANGDOCK.md)
+carries fourteen of them as ready-made links.
+
+**By hand, into Claude Code.** Copy a skill directory out of the repository into your
+own skills folder — `~/.claude/skills/` for every project, `.claude/skills/` in a
+project for that one:
+
+```bash
+git clone https://github.com/klicktipp/agent-plugins.git
+```
+
+```bash
+cp -R agent-plugins/plugins/klicktipp/skills/newsletter ~/.claude/skills/
+```
+
+A skill installed this way carries no MCP server. The tools it names only answer once
+the plugin is installed and signed in, or the server is added by hand.
+
+**Other hosts.** opencode, OpenClaw and Langdock set up the server and the skills from
+a prompt in their own guides, linked at the top of this README.
+
 ## Layout
 
 ```
