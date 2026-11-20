@@ -53,9 +53,10 @@ every `<group>/tools.txt`. A mocked tool is visible to Claude during the run and
 schema goes into the run's context, so this costs roughly 110k tokens of tool definitions
 per run. Until 0.35.0 each group served only its own tools, 1 to 61 of them: cheaper, but
 a skill reaching for a tool its group did not list hit nothing. Two consequences to keep
-in mind — a full run costs noticeably more than the $3.32 recorded below, and scores from
-before the change are not directly comparable, because 185 schemata in context are a
-different working environment than 9.
+in mind. A run takes far longer — the measured core twelve went from 2 minutes to 15,
+while money rose only 48% — so budget wall time, not dollars. And scores from before the
+change are not directly comparable, because 185 schemata in context are a different
+working environment than 9.
 
 `<group>/tools.txt` no longer decides what a group serves. It stays as the record of
 which tools that skill names, and it feeds the union.
@@ -181,10 +182,25 @@ smart links, countdowns or webhooks.
 
 ## Last measured
 
-Model `sonnet`, judge `haiku`, `runs: 1` — all 33 cases, two arms, **mean Δ +0.46**, 5½
-minutes, **$3.32**. The twelve `core` cases, run on their own: mean Δ **+0.29**, two
-minutes, **$1.21**. Their Δ is lower because the core set is deliberately the hard half —
-the guards, not the easy reads.
+Model `sonnet`, judge `haiku`, `runs: 1`.
+
+**With the full tool set (20 Nov 2026).** The twelve `core` cases, two arms: mean Δ
+**+0.39**, 11 of 12 passed, **15 minutes**, **$1.79**. The 33-case suite has not been run
+since the change — the figures below are what it gave before it.
+
+The jump over the old core figure comes from three cases: `01-doi-ausstehend` went +0.20 →
++1.00, `02-einwilligungsumfang` −0.33 → 0.00 and `02-statistik-ist-keine-kontaktzahl` 0.00
+→ +0.33, against one step back in `04-versand-mensch-bestaetigt`, +0.67 → +0.33. At
+`runs: 1` that is within the spread described below, so treat it as encouraging rather
+than settled.
+
+The run's real cost is wall time, not dollars: 15 minutes against 2 for the same twelve
+cases, because 185 tool schemata enter every turn. Money rose far less, 48%.
+
+**With per-group tools, before the change.** All 33 cases, two arms, mean Δ +0.46, 5½
+minutes, $3.32. The twelve `core` cases on their own: mean Δ +0.29, two minutes, $1.21.
+Their Δ is lower because the core set is deliberately the hard half — the guards, not the
+easy reads.
 
 Three consecutive `--runs 1` probes of the same suite gave mean Δ +0.43, +0.44 and +0.46,
 but individual cases moved far more than that spread suggests: `03-nur-im-editor` and
