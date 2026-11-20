@@ -28,7 +28,7 @@ carries a prompt that has the host set both up itself —
 | Endpoint | `https://mcp.klicktipp.com/mcp` |
 | Tools | newsletters (draft, block-by-block content, audience, sender, test send, dispatch confirmation), automations (graph, actions, templates, their emails and SMS, test sends), split tests, contacts, tags, fields, opt-in processes, images, signatures and sender domains, the statistics of sends, tags and automations, and the account settings |
 | Skills | `account-setup` — from a new account to a first safe newsletter test · `email` — the content of one email, block by block · `newsletter` — draft, audience, sender, dispatch · `splittest` — A/B tests and their arms · `dns-setup` — sending-domain DNS records and verification · `contacts` — contacts, their field values, history and CSV/Excel imports, and the account settings · `tags` — manual tags and who carries them · `custom-fields` — field definitions and their placeholders · `opt-in` — opt-in processes and their confirmation email · `automation` — automations, their actions and templates · `webinaris-webinar` — a complete campaign for a Webinaris auto-webinar and the matching Webinaris settings · `provenexpert-reviews` — a ProvenExpert review campaign after a purchase, wired to the survey's smart tags · `dashboard` — the account's numbers as a readable dashboard: the account overview, sends, tags and their counts, saved reports · `company-context` — the confirmed company snapshot behind customer-facing copy · `signatures` — reusable email signatures and their sender identity · `deliverability-check` — a read-only diagnosis of the account's deliverability · `email-template-generator` — plain business emails |
-| Agents | Claude Code and the Claude directory (`.claude-plugin/`), Codex and ChatGPT (`.codex-plugin/`) |
+| Agents | Claude Code and the Claude directory (`.claude-plugin/`), Codex and ChatGPT (`.codex-plugin/`), Cursor (`.cursor-plugin/`) |
 | Requires | a KlickTipp account |
 
 ## Layout
@@ -45,7 +45,8 @@ SETUP_LANGDOCK.md                   the same from a Langdock workspace — these
 plugins/klicktipp/
 ├── .claude-plugin/plugin.json      manifest for Claude
 ├── .codex-plugin/plugin.json       manifest for Codex/ChatGPT, kept at the same version
-├── .mcp.json                       the MCP server — both manifests read this one file
+├── .cursor-plugin/plugin.json      manifest for Cursor, kept at the same version
+├── .mcp.json                       the MCP server — all three manifests read this one file
 ├── assets/logo.png
 ├── skills/                        shipped with the plugin: account-setup, email, newsletter, splittest, dns-setup,
 │                                   automation, contacts, tags, custom-fields, opt-in, dashboard,
@@ -61,7 +62,7 @@ plugins/klicktipp/
 
 Both manifests are validated on every push by
 [`.github/workflows/validate.yml`](.github/workflows/validate.yml): `claude
-plugin validate` plus the invariants it does not cover — that the two manifests
+plugin validate` plus the invariants it does not cover — that the three manifests
 stay at the same version and carry the fields a public listing needs, and that
 the published plugin points nowhere but production.
 
@@ -74,7 +75,7 @@ git tag 0.5.1 && git push origin 0.5.1
 ```
 
 [`.github/workflows/release.yml`](.github/workflows/release.yml) checks that the
-tag equals the version in both manifests, revalidates the plugin, takes the
+tag equals the version in all three manifests, revalidates the plugin, takes the
 release notes from the tag's [`CHANGELOG.md`](CHANGELOG.md) section, and attaches
 `klicktipp-<tag>.zip` — the contents of the plugin directory, with
 `.claude-plugin/plugin.json` at the top level, which is where the plugin

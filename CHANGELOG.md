@@ -7,6 +7,32 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
+## 0.36.0 — 2026-11-20
+
+- **A Cursor manifest, so the plugin installs in a third host.** `.cursor-plugin/plugin.json`
+  sits beside the Claude and Codex manifests and carries the same version, description,
+  keywords and listing fields. All three point at the one `.mcp.json` and the one `skills/`
+  directory, so Cursor gets the same server and the same seventeen skills rather than a
+  copy that would drift.
+  - `.github/scripts/check_manifests.py` compares all three instead of two, on version,
+    description, keywords, homepage, repository, license and the skills declaration, and
+    checks that the manifest's logo file exists. Claude and Cursor carry the listing fields
+    flat while Codex carries them in its `interface` block; both shapes are compared against
+    the Claude manifest.
+  - `release.yml` checks the tag against all three manifests, not just two. Before this, a
+    Cursor manifest out of step with the tag would have passed that gate.
+- **The eval suite mocks every tool.** Each case's MCP mock served only its own group's
+  tools, 1 to 61 of them, so a skill reaching for anything else hit nothing. Every case now
+  serves the union of the saved catalogue and every `tools.txt`, 185 tools.
+  - `build-mocks.py` no longer aborts when a `tools.txt` names a tool the published
+    catalogue lacks — it mocks it and says so. Two are in that state, `send-newsletter` and
+    `update-automation-email`; both exist on the server, where the catalogue lags it.
+  - Measured on the twelve `core` cases: mean Δ +0.39 against +0.29, 11 of 12 passed against
+    9. The cost is wall time, 15 minutes against 2, because 185 schemata enter every turn.
+    Scores from before the change are not directly comparable.
+- **`AGENTS.md`** records the rules the repository runs on — the three manifests, why the
+  plugin directory ships no executable code, how to run the eval suite, and the release path.
+
 ## 0.35.0 — 2026-11-19
 
 - **A newsletter from an existing source, with a subject split test.** Takes in the staging plugin's

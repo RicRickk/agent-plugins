@@ -2,8 +2,8 @@
 #
 #   git tag 0.5.1 && git push origin 0.5.1
 #
-# The tag is the version. It has to match what both manifests carry and it has
-# to have a CHANGELOG.md section — a release with the wrong version in it, or
+# The tag is the version. It has to match what all three manifests carry and it
+# has to have a CHANGELOG.md section — a release with the wrong version in it, or
 # with no notes, is worse than no release, so either one fails the run before
 # anything is published.
 
@@ -42,7 +42,8 @@ jobs:
       - name: The tag is the manifest version
         run: |
           for f in plugins/klicktipp/.claude-plugin/plugin.json \
-                   plugins/klicktipp/.codex-plugin/plugin.json; do
+                   plugins/klicktipp/.codex-plugin/plugin.json \
+                   plugins/klicktipp/.cursor-plugin/plugin.json; do
             have=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$f")
             if [ "$have" != "${{ steps.v.outputs.version }}" ]; then
               echo "$f says $have, the tag says ${{ steps.v.outputs.version }}" >&2

@@ -26,8 +26,8 @@ jobs:
           claude plugin validate .
           claude plugin validate plugins/klicktipp
 
-      # Invariants the validator does not know about. The Claude and the Codex
-      # manifest are two files describing one plugin; if they drift, one of the
-      # two directories ships something we did not mean to publish.
+      # Invariants the validator does not know about. The Claude, Codex and
+      # Cursor manifests are three files describing one plugin; if they drift,
+      # one of the three directories ships something we did not mean to publish.
       - name: Manifests agree
         run: python3 .github/scripts/check_manifests.py

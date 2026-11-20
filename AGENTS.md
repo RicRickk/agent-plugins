@@ -7,13 +7,18 @@ repository has its own version tags.
 [`README.md`](README.md) is the layout and the public picture. This file is the rules an
 agent needs before changing anything.
 
-## The two manifests move together
+## The three manifests move together
 
-`plugins/klicktipp/.claude-plugin/plugin.json` (Claude) and
-`plugins/klicktipp/.codex-plugin/plugin.json` (Codex/ChatGPT) are two manifests for one
-plugin. They **must carry the same `version`**, and both read the same
-`plugins/klicktipp/.mcp.json`. `.github/scripts/check_manifests.py` fails the build when
-they drift, and the version appears nowhere else but the `CHANGELOG.md` heading.
+Under `plugins/klicktipp/`, `.claude-plugin/plugin.json` (Claude),
+`.codex-plugin/plugin.json` (Codex/ChatGPT) and `.cursor-plugin/plugin.json` (Cursor) are
+three manifests for one plugin. They **must carry the same `version`**, and all three read
+the same `plugins/klicktipp/.mcp.json` and the same `skills/`.
+`.github/scripts/check_manifests.py` fails the build when they drift, and the version
+appears nowhere else but the `CHANGELOG.md` heading.
+
+Claude and Cursor carry the listing fields flat (`displayName`, `documentationUrl`,
+`privacyPolicyUrl` and so on); Codex carries them inside its `interface` block. The
+checker compares both shapes against the Claude manifest.
 
 The published plugin points at production only — `https://mcp.klicktipp.com/mcp`. Never
 commit a staging or local endpoint into a manifest or `.mcp.json`.

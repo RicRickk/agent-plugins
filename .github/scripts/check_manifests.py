@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Check the invariants `claude plugin validate` does not cover.
 
-The Claude manifest and the Codex manifest describe one plugin for two
+The Claude, Codex and Cursor manifests describe one plugin for three
 directories. Whatever drifts between them is published to one audience and not
-the other, and nothing else in CI would notice.
+the others, and nothing else in CI would notice.
 
     python3 .github/scripts/check_manifests.py
 """
@@ -38,6 +38,7 @@ def load(path):
 def main():
     claude = load(PLUGIN / ".claude-plugin" / "plugin.json")
     codex = load(PLUGIN / ".codex-plugin" / "plugin.json")
+    cursor = load(PLUGIN / ".cursor-plugin" / "plugin.json")
     market = load(ROOT / ".claude-plugin" / "marketplace.json")
     mcp = load(PLUGIN / ".mcp.json")
     if problems:
@@ -45,7 +46,7 @@ def main():
 
     # the name is a permanent slug in both directories — a rename breaks every
     # existing install with plugin-not-found, so it is pinned here on purpose
-    for label, m in (("claude", claude), ("codex", codex)):
+    for label, m in (("claude", claude), ("codex", codex), ("cursor", cursor)):
         if m.get("name") != "klicktipp":
             fail(f"{label} manifest: name is '{m.get('name')}', must stay 'klicktipp'")
         if not SEMVER.match(str(m.get("version", ""))):
@@ -56,10 +57,24 @@ def main():
         if m.get("mcpServers") != "./.mcp.json":
             fail(f"{label} manifest: mcpServers must point at ./.mcp.json")
 
-    # both directories have to be shipped the same plugin
+    # all three directories have to be shipped the same plugin
     for field in ("version", "description", "keywords", "homepage", "repository", "license"):
-        if claude.get(field) != codex.get(field):
-            fail(f"'{field}' differs between the Claude and the Codex manifest")
+        for label, m in (("Codex", codex), ("Cursor", cursor)):
+            if claude.get(field) != m.get(field):
+                fail(f"'{field}' differs between the Claude and the {label} manifest")
+
+    # Cursor reads the flat fields the Claude manifest carries, not the Codex
+    # interface block, so those are compared against Claude directly
+    for field in ("displayName", "documentationUrl", "supportUrl",
+                  "privacyPolicyUrl", "termsOfServiceUrl"):
+        if claude.get(field) != cursor.get(field):
+            fail(f"'{field}' differs between the Claude and the Cursor manifest")
+
+    logo = cursor.get("logo")
+    if not logo:
+        fail("cursor manifest: missing 'logo'")
+    elif not (PLUGIN / logo.lstrip("./")).is_file():
+        fail(f"cursor manifest: logo '{logo}' does not exist")
 
     if claude.get("displayName") != codex.get("interface", {}).get("displayName"):
         fail("displayName differs between the Claude manifest and the Codex interface block")
@@ -100,16 +115,17 @@ def main():
         if not source.is_dir():
             fail(f"marketplace.json: source '{entries[0].get('source')}' is not a directory")
 
-    # Codex reads the same directory, so a skills declaration that only one of
-    # the two manifests carries ships the skills to one audience and not the other
+    # Codex and Cursor read the same directory, so a skills declaration that only
+    # some manifests carry ships the skills to one audience and not the others
     for declared, path in (("skills", "skills"),):
-        for label, m in (("claude", claude), ("codex", codex)):
+        for label, m in (("claude", claude), ("codex", codex), ("cursor", cursor)):
             if m.get(declared) and not (PLUGIN / path).is_dir():
                 fail(f"{label} manifest declares '{declared}' but {path}/ does not exist")
             if (PLUGIN / path).is_dir() and not m.get(declared):
                 fail(f"{path}/ exists but the {label} manifest does not declare '{declared}'")
-        if claude.get(declared) != codex.get(declared):
-            fail(f"'{declared}' differs between the Claude and the Codex manifest")
+        for label, m in (("Codex", codex), ("Cursor", cursor)):
+            if claude.get(declared) != m.get(declared):
+                fail(f"'{declared}' differs between the Claude and the {label} manifest")
 
     return report()
 
@@ -118,7 +134,7 @@ def report():
     if problems:
         print("\n".join(f"  x {p}" for p in problems))
         sys.exit(f"\n{len(problems)} problem(s) in the published manifests.")
-    print("ok - the Claude and Codex manifests agree and are complete.")
+    print("ok - the Claude, Codex and Cursor manifests agree and are complete.")
 
 
 if __name__ == "__main__":
