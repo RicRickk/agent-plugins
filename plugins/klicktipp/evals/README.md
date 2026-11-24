@@ -17,7 +17,7 @@ cd plugins/klicktipp
 claude plugin eval . --tag core --ablation with-without --judge-model haiku --no-publish
 ```
 
-Drop `--tag core` for all 33, which is what to do before a release or after touching a
+Drop `--tag core` for all 37, which is what to do before a release or after touching a
 skill the core set does not reach.
 
 The cases pin `model: sonnet` and `runs: 1`. `--model` and `--runs` override both, so the
@@ -121,7 +121,7 @@ into `mocks/.replay/klicktipp/`.
 | group | cases | what they guard |
 |---|---|---|
 | `newsletter` | 8 | subject not invented, "all contacts" said out loud, audience replaced as a whole, human confirms dispatch, pre-header limits, reach from the audience — plus two prompts the skill must leave alone |
-| `automation` | 3 | reads a flow correctly, never claims an automation is active, never says "that only works in the editor" |
+| `automation` | 7 | reads a flow correctly, never claims an automation is active, never says "that only works in the editor"; offer templates (tag `bam`): asks the situation before importing, also when all four are named, keeps linked templates on one tag, passes on start, limits and a test run |
 | `email` | 2 | reads the block document rather than inventing content, writes at the revision it read, reports the content check before publishing |
 | `contacts` | 3 | a pending double opt-in stays pending, a write to a contact is announced before it happens, an unsubscribe is explained from the record |
 | `tags` | 3 | resolves a name to the existing tag, does not create a duplicate, knows a system tag cannot be renamed |

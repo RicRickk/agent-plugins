@@ -105,7 +105,6 @@ tools:
   - move-email-editor-block
   - open-email-editor-image-upload
   - prepare-automation-activation
-  - prepare-newsletter-dispatch
   - preview-email-editor
   - preview-email-editor-image
   - preview-email-editor-template
@@ -151,7 +150,6 @@ tools:
   - update-account-settings
   - update-automation-draft
   - update-automation-email
-  - update-automation-email-draft
   - update-automation-sms-draft
   - update-automation-start-action
   - update-contact-email
@@ -327,3 +325,50 @@ returns `{"deleted": true}`; for `880`, which was sent, it answers
 `"contentRevisionInvalidated": true` whenever subject or pre-header changed.
 A pre-header over 120 characters, or one containing HTML, is rejected with
 `ERROR: preheader must be plain text of at most 120 characters`.
+
+## Offer templates (Masterclass module 6)
+
+`search-automation-templates` with an offer query ("Angebot", "nachfassen") returns these four,
+each with `description`, `startsWhenTagged`, `tagNames`, `customFieldNames`, `includedAutomations: []`:
+
+| uri | name | description | startsWhenTagged |
+|---|---|---|---|
+| `klicktipp://automation-templates/ak` | AK - AngebotsKampagne | Sends an individual offer (PDF link from field "Angebot 1 (PDF)"), reminds, notifies sales; sales click starts the follow-up ANK via tag "Nachfasskampagne starten (Action)" | Sende individuelles Angebot (Action) |
+| `klicktipp://automation-templates/aak` | AAK - AllgemeineAngebotsKampagne | Same as AK with one standard offer PDF for everyone | Sende Standardangebot (Action) |
+| `klicktipp://automation-templates/ank` | ANK - AngebotsNachfassKampagne | Follow-up of an offer sent by AK or AAK; asks the customer for feedback | Nachfasskampagne starten (Action) |
+| `klicktipp://automation-templates/oak` | OAK - OffeneAngeboteKampagne | For offers that already went out before KlickTipp: follows them up | OAK starten (Action) |
+
+AK and AAK set the tag "Nachfasskampagne starten (Action)"; ANK starts on it. The templates
+are separate: importing AK does NOT import ANK.
+
+`get-automation-template` answers `smartImportAvailable: true`, `importable: true`,
+`notTransferable: []`, and `objects` with `suggestedExistingId: ''` for every object, except
+that once a tag of the same name exists in the account (after an earlier import without
+prefix) its id is the `suggestedExistingId`. Template object ids: tag "Sende individuelles
+Angebot (Action)" `t1`, tag "Nachfasskampagne starten (Action)" `t2`, field "Angebot 1 (PDF)"
+`f1`, field "Förmliche Anrede" `f2`, smart link "Angebot geöffnet" `s1`.
+
+`import-automation-template` creates the automation PAUSED with ids `30`, `31`, … and new tags
+`310`, `311`, … With an `objectPrefix`, every created tag and field carries the prefix in its
+name, and a tag that already exists from an earlier import is created AGAIN as `<name>_1`
+(new id) instead of being reused — so ANK imported with a prefix after AK starts on a different
+tag than the one AK sets. Without a prefix, a tag of the same name is reused. A smart link
+shared by two imported templates arrives the second time as `Angebot geöffnet_1`.
+
+## Already imported (paused)
+
+- `20` "AK - AngebotsKampagne" — paused, imported yesterday. Start: active subscriber AND
+  field "Angebot 1 (PDF)" (`35`) not empty AND tag `301` "Sende individuelles Angebot (Action)".
+  Actions: untag `301`, email "Ihr individuelles Angebot", wait 4 weekdays with goal "Angebot
+  geöffnet", notification to `vertrieb@ihredomain.de` (placeholder), decision on sales click,
+  tag `302` "Nachfasskampagne starten (Action)", restart.
+  `settings.notes`: "Start: aktiver Abonnent + Feld „Angebot 1 (PDF)“ gefüllt + Tag „Sende
+  individuelles Angebot (Action)“ (wird sofort entzogen). ANK mit importieren, ohne Präfix.
+  Vor Aktivierung: Smart-Link-URLs ihredomain.de ersetzen, Links in Mails exakt gleich,
+  Vertriebsadresse ersetzen, Mails veröffentlichen, Absender prüfen. Grenzen: ein offenes
+  Angebot pro Kontakt; neues Angebot erst nach Ende des vorigen auslösen; Klicks können von
+  Linkscannern stammen."
+  The account does NOT show notes in its interface (`get-account-settings` → `enableNotes: false`).
+- `25` "ANK - AngebotsNachfassKampagne" — paused, start tag `302`.
+- Custom fields `35` "Angebot 1 (PDF)" (url), `36` "Förmliche Anrede" (text). Tags `301`, `302`
+  manual, 0 contacts.
