@@ -1,5 +1,8 @@
 # Automation templates: find, read, import
 
+## Contents
+Order (find, read, settle, import, report, finish) · What the import is and is not · Resources
+
 Two kinds of templates, one pair of tools for both:
 
 | Source | What the user has | What you pass as `templateLink` |
@@ -14,7 +17,9 @@ Two kinds of templates, one pair of tools for both:
    narrows to one Masterclass module. Each hit carries `description`, `startsWhenTagged`,
    `emailSubjects`, `tagNames`, `customFieldNames` and `includedAutomations`. Pick by those, not
    by the name. Present two or three candidates with one sentence each when the choice is not
-   obvious.
+   obvious. When several templates serve one goal at different stages, ask the one question that
+   decides between them (offer: already sent?) before importing, and recommend one — also when the
+   user names or links all of them. Do not suggest importing all.
 2. **Read.** `get-automation-template` with the uri or link. It answers with:
    - `objects` — every tag, custom field, email and outbound the import brings, each with
      `suggestedExistingId`: the account's object of the same name the import maps it onto by
@@ -33,6 +38,11 @@ Two kinds of templates, one pair of tools for both:
      recognisable;
    - **mappings**: for each tag and custom field, reuse an existing one or create a copy. Reusing
      matters for tags and fields the account already works with (`per Du`, `Kunde`, first name).
+   - **templates that belong together** — one sets the tag the other starts on: in the second
+     import, map that tag with `useExistingId` to the tag the first import created. Otherwise it is
+     copied (with a prefix always) and the second automation never starts. Without smart import,
+     read both with `get-automation` afterwards and set the second one's start tag with
+     `update-automation-start-action`.
 4. **Import.** `import-automation-template`:
 
    ```json
@@ -55,7 +65,15 @@ Two kinds of templates, one pair of tools for both:
 6. **Finish the automation** with the other tools of this skill — the imported one is an ordinary
    automation. Set the start condition where `notTransferable` says it could not be carried over,
    replace placeholder text in the emails (the sales-funnel templates carry `[Was ist das Thema
-   deines Angebots]` and the like), then `validate-automation`.
+   deines Angebots]` and the like) with the user's real values — sales address, phone, URLs; from
+   `company-context` if confirmed, otherwise ask — then `validate-automation`. Check the start
+   condition with `get-automation` even when `notTransferable` is empty (see below). Then:
+   - Read `settings.notes` from `get-automation` and tell the user how a contact enters (start tag,
+     required fields) and which limits the notes name.
+   - Offer one test run before real contacts get the start tag: after the user has activated the
+     automation in the dialog, tag one test contact the user names (skill `tags`), check every email
+     and notification, and skip waits with `move-contact-past-automation-wait` (preview first,
+     `confirm` only after the user agreed).
 
 ## What the import is and is not
 
@@ -69,7 +87,15 @@ Two kinds of templates, one pair of tools for both:
 - **Without smart import** the account cannot choose name, prefix, labels or mappings; passing any
   of them is refused. Every object is then copied with the prefix `Importiert`, as in the dialog.
 - The emails arrive with their content: classic emails as HTML, drag-and-drop emails with their
-  editor document. Placeholders of copied custom fields are rewritten to the new fields.
+  editor document. Placeholders of copied custom fields are rewritten only in the HTML of classic
+  emails. In plain-text parts and drag-and-drop emails, look for the template's old field IDs
+  (from `objects`) and have them replaced via skill `email`.
+- An email referenced only in the start condition, not in an email action, does not come along;
+  the condition then points at nothing.
+- Smart links come along with their URL; a click counts only if the email link matches it exactly.
+  When you replace a URL in an email, set the smart link to the same URL with `update-smart-link`.
+  A smart link shared by two templates arrives twice (the second `<name>_1`); check that each
+  email links to its own.
 
 ## Resources
 

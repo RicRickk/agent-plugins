@@ -25,7 +25,17 @@ pastes a link `…/template/…` means a shared template; it goes through the sa
 Find → `get-automation-template` → settle name and mappings with the user →
 `import-automation-template` → finish with the tools below. The import creates the automation
 **paused** and sends nothing. Procedure, arguments and what the answer means:
-[references/templates.md](references/templates.md).
+[references/templates.md](references/templates.md) — read it before the first import.
+
+- Several templates for one goal at different stages (an offer not yet sent vs. already sent), or
+  one that only another template starts: ask the question that decides between them before
+  importing, recommend one — also when the user names or links all of them. "Import all" is not a
+  recommendation; import several only after the user said they have each situation.
+- Templates where one sets the tag the other starts on: import both and map that tag to the same
+  one.
+- After the import, in the same report: how a contact enters, every limit `settings.notes` lists
+  (for example one open offer per contact), and the offer of a test run with a test contact before
+  real contacts get the start tag.
 
 ## Best practices — the default, not an option
 
@@ -160,6 +170,7 @@ availability and price first, a check for empty results, a pilot contact whose f
 | `move-automation-action` | `subtree` moves the following graph along; a decision with filled branches only as a subtree. |
 | `copy-automation-action` | new action ID, **same** message. Editing the copy's text hits the original — copy it first with `copy-automation-email` / `copy-automation-sms` (`copy-notification-email` / `copy-notification-sms` for a notification). |
 | `add-automation-go-to-action` | jumps to an action **ID** from `get-automation`, not to a name. |
+| `settings.notes` (`update-automation-draft`) | at most 1000 characters. The tool accepts more, but the automation can then no longer be saved or activated. |
 
 ## Boundaries
 

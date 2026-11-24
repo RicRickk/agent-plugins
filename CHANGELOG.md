@@ -7,6 +7,17 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
+## 0.36.2 — 2026-11-24
+
+- **Automation template imports ask which offer situation applies before choosing a campaign**
+  (MCAEM-240), also when all four offer templates are named. Linked templates reuse the same
+  start tag, including imports with a prefix.
+- The `automation` skill explains entry conditions and campaign limits, checks placeholder
+  values and offers a test run. Its template reference documents import limits for custom-field
+  placeholders, start-condition emails and shared smart links, and the 1000-character notes limit.
+- Four new automation eval cases cover template selection, linked start tags and the steps
+  before activation.
+
 ## 0.36.1 — 2026-11-20
 
 - **The README says how to install and use the plugin, in both CLIs.** It carried the three
