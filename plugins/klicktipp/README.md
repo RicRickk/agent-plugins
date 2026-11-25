@@ -13,18 +13,14 @@ a prompt that has the host set both up itself.
 
 ## Install
 
-**Claude Code**
+Every host installs a plugin its own way, so follow the install guide at
+[developers.klicktipp.com/guides/mcp-server-plugins](https://developers.klicktipp.com/guides/mcp-server-plugins).
+It covers adding this marketplace in Claude Code, and pointing Codex and Cursor at this
+directory — in Codex the `interface` block in `.codex-plugin/plugin.json` carries the
+display metadata it expects.
 
-```bash
-claude plugin marketplace add klicktipp/agent-plugins
-claude plugin install klicktipp@klicktipp
-claude mcp login plugin:klicktipp:klicktipp
-```
-
-**Codex** — point your plugin configuration at this directory. The `interface`
-block in `.codex-plugin/plugin.json` carries the display metadata Codex expects.
-
-Both targets read the same `.mcp.json`.
+All three read the same `.mcp.json`. The one interactive sign-in at the endpoint is in
+[SETUP.md](SETUP.md).
 
 ## Tools
 
