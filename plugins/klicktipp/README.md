@@ -11,17 +11,6 @@ skills work without the plugin in [opencode](https://github.com/klicktipp/agent-
 [OpenClaw](https://github.com/klicktipp/agent-plugins/blob/main/SETUP_OPENCLAW.md) and [Langdock](https://github.com/klicktipp/agent-plugins/blob/main/SETUP_LANGDOCK.md) — each guide carries
 a prompt that has the host set both up itself.
 
-## Install
-
-Every host installs a plugin its own way, so follow the install guide at
-[developers.klicktipp.com/guides/mcp-server-plugins](https://developers.klicktipp.com/guides/mcp-server-plugins).
-It covers adding this marketplace in Claude Code, and pointing Codex and Cursor at this
-directory — in Codex the `interface` block in `.codex-plugin/plugin.json` carries the
-display metadata it expects.
-
-All three read the same `.mcp.json`. The one interactive sign-in at the endpoint is in
-[SETUP.md](SETUP.md).
-
 ## Tools
 
 **Newsletters**
