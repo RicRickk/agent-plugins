@@ -61,15 +61,17 @@ working environment than 9.
 `<group>/tools.txt` no longer decides what a group serves. It stays as the record of
 which tools that skill names, and it feeds the union.
 
-Three files drive it, and `tools/build-mocks.py` writes the per-case mocks from them:
+Three files drive it, and the `build-mocks.py` generator writes the per-case mocks from
+them:
 
 ```
 mocks/world.md              the fictional account, shared by every group
 <group>/tools.txt           the tools that group's skill names
 <group>/abort_when.md       what ends a run outright
-python3 tools/build-mocks.py          # regenerate, from the repository root
-python3 tools/build-mocks.py --check  # CI: fail when a mock is out of date
 ```
+
+Run that generator from the repository root to regenerate the mocks; CI runs it in its
+check mode and fails when a mock is out of date.
 
 The two generator scripts live in `tools/` at the repository root, not here. The plugin
 directory accepts only Markdown, text, JSON, YAML and a few image formats inside a
@@ -83,12 +85,10 @@ drops tags, a write to a contact nobody approved, an automation reported as acti
 `mocks/klicktipp/_tools.json` is the saved `tools/list` of the **production** server. It
 is **not committed**, and the suite runs without it: a mocked tool then carries a
 permissive placeholder schema and the model has to guess the arguments it should accept.
-Write it before a run that should see the real descriptions and schemas:
-
-```bash
-python3 tools/refresh-tools.py              # 183 tools, 467 KiB, local only
-python3 tools/refresh-tools.py --no-output-schema   # half that, response shapes guessed
-```
+The second generator in `tools/`, `refresh-tools.py`, writes it before a run that should
+see the real descriptions and schemas: 183 tools, 467 KiB, local only, or about half that
+when it is told to leave the output schemas out, in which case response shapes are
+guessed.
 
 It reads the published tool catalogue, because `https://mcp.klicktipp.com/mcp` answers
 `tools/list` only behind OAuth; it writes only the tools the groups mock — the union of
