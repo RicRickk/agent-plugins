@@ -7,17 +7,15 @@ repository.
 The production plugin takes changes from the internal staging plugin where applicable.
 This repository has its own version tags; each published version has its own entry here.
 
-## 0.36.3 — 2026-11-25
+## 0.36.4 — 2026-11-25
 
 - **No command in the plugin downloads code and runs it.** The directory's policy review
   flagged two shipped documents for showing an install-time command that fetches code and
   executes it right away — what runs then is not part of the reviewed plugin.
-  - `README.md` no longer prints the marketplace and install commands. Its `Install`
-    section points at the install guide at
-    https://developers.klicktipp.com/guides/mcp-server-plugins, keeps the note that Codex
-    reads the `interface` block of `.codex-plugin/plugin.json`, and keeps the pointer to
-    `SETUP.md` for the one interactive sign-in. All three hosts still read the same
-    `.mcp.json`.
+  - `README.md` has no `Install` section any more. It printed the marketplace and install
+    commands; rewording them into a pointer to the install guide still matched the check,
+    so installing is described only in the repository's own README and in `SETUP.md` — the
+    opening paragraph points at the latter for the one interactive sign-in.
   - `evals/README.md` describes the two mock generators instead of printing their command
     lines: `build-mocks.py` regenerates the per-case mocks from the three source files and
     runs in check mode in CI, and `refresh-tools.py` writes the saved tool catalogue. Both
